@@ -1,10 +1,12 @@
 import React from 'react';
 import './welcome.css';
+import { useNavigate } from 'react-router-dom';
 import handsImage from "./Images/hands.png";
 import logoImage from "./Images/whitelogo.png";
 import colorLogo from "./Images/UnboundedColor.png";
 
 const Welcome: React.FC = () => {
+    const navigate = useNavigate();
     return (
       <div className="login-container">
         <div className="left-panel">
@@ -24,7 +26,7 @@ const Welcome: React.FC = () => {
             <a href="#" className="forgot-password">Forgot Password?</a>
             <button className="login-button">Log In</button>
             <span className="or">⎯⎯⎯⎯⎯⎯ or ⎯⎯⎯⎯⎯⎯</span>
-            <button className="register-button">Register</button>
+            <button className="register-button"  onClick={() => navigate('/register')}>Register</button>
           </div>
         </div>
       </div>
