@@ -1,13 +1,18 @@
 import React from 'react';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Welcome from './Frontend/welcome';
+import Register from './Frontend/register'; 
 
 function App() {
   return (
-    <div>
-      <Welcome />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Welcome />} />
+        <Route path="/register" element={<Register />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
+
