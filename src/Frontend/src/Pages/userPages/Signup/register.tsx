@@ -1,7 +1,7 @@
 import React from 'react';
-import './register.css';
+import '../../../Styles/register.css';
 import { useNavigate } from 'react-router-dom';
-import logoImage from "./Images/whitelogo.png";
+import logoImage from "../../../assets/whitelogo.png";
 
 const Register: React.FC = () => {
     const navigate = useNavigate();
