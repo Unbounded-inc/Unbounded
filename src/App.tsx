@@ -1,18 +1,12 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Welcome from './Frontend/welcome';
-import Register from './Frontend/register'; 
-import Profile from "./Frontend/profile";
+import './App.css';
+import Welcome from './frontend/src/Pages/userPages/Login/welcome';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Welcome />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/profile" element={<Profile />} />
-      </Routes>
-    </Router>
+    <div>
+      <Welcome />
+    </div>
   );
 }
 
