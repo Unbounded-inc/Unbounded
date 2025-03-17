@@ -89,15 +89,25 @@
     cursor: pointer;
     font-size: 1rem;
   }
-  
+
   .login-button {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
     background: #4c569e;
     color: white;
-    margin: 5px;
-    width: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
   }
-  
-  .register-button {
+
+  .login-button:hover {
+    background: #3a457a;
+  }
+
+
+.register-button {
     background: #260c29;
     color: white;
     margin: 5px;
