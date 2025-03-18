@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-// Define expected props
+
 interface LoginButtonProps {
   email: string;
   password: string;
@@ -13,12 +13,11 @@ const LoginButton: React.FC<LoginButtonProps> = ({ email, password }) => {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      setError("Please enter both email and password.");
+      alert("Please enter either an email or username and password.");
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       const response = await axios.post(
@@ -51,7 +50,7 @@ const LoginButton: React.FC<LoginButtonProps> = ({ email, password }) => {
 
   return (
     <div>
-      <button className="login-button" onClick={handleLogin} disabled={loading}>
+      <button style={{background: "#4c569e"}} onClick={handleLogin} disabled={loading}>
         {loading ? "Logging in..." : "Log In"}
       </button>
       {error && <p className="error">{error}</p>}

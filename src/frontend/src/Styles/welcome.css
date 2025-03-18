@@ -17,7 +17,7 @@
 }
 
 .logo {
-  width: 350px;
+  width: 270px;
 }
 
 .highlight {
@@ -47,7 +47,7 @@
 }
 
 .large-logo {
-  width: 400px;
+  width: 350px;
   margin-left: 50px;
   margin-top: 10px;
   margin-bottom: 10px;
@@ -62,8 +62,8 @@
   align-items: center;
   background: #f9f9f9;
   padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  box-shadow: 0 0px 30px rgba(0, 0, 0, 0.2);
 }
 
 input {
@@ -94,14 +94,13 @@ button {
   background: #4c569e;
   color: white;
   margin: 5px;
-  width: 50%;
+
 }
 
 .register-button {
   background: #260c29;
   color: white;
   margin: 5px;
-  width: 50%;
 }
 
 .or {
@@ -119,4 +118,12 @@ button {
 .textfield {
   width: 80%;
   border-radius: 10px;
+  background-color: white;
+  height: 45px;
+  color: black;
+}
+
+.login-title {
+  color: black;
+  margin: 5px;
 }
