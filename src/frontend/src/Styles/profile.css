@@ -1,19 +1,28 @@
-
 .profile-container {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    width: 100vw; /*Inshallah this works*/
     background: linear-gradient(to bottom, #260c29, #4c569e);
+    flex-grow: 1; 
 }
 
 .profile-box {
     background: white;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 40px; 
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     text-align: center;
-    width: 350px;
+    width: 600px; 
+    max-width: 90%; 
+    color: black;
+}
+
+.profile-box h2,
+.profile-box p,
+.profile-box label {
+    color: black; 
 }
 
 .profile-avatar {
@@ -24,9 +33,9 @@
 }
 
 .profile-username {
-    font-size: 20px;
+    font-size: 50px;
     font-weight: bold;
-    margin-bottom: 10px;
+    margin-bottom: 50px;
 }
 
 .profile-form {
@@ -37,11 +46,21 @@
 
 .textfield {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 5px;
-    font-size: 14px;
+    font-size: 16px;
+    resize: none; 
 }
+
+.bio-textarea {
+    width: 100%;
+    height: 120px; /* Fixed height so it doesn’t get too large */
+    max-height: 200px; /* Prevents excessive growth */
+    overflow-y: auto; /* Enables scrolling instead of breaking out of the box */
+    resize: vertical; /* Allows controlled resizing */
+}
+
 
 .save-button, .logout-button {
     width: 100%;
@@ -55,10 +74,10 @@
 
 .save-button {
     background-color: #4CAF50;
-    color: white;
+    color: rgb(0, 0, 0);
 }
 
 .logout-button {
     background-color: #d9534f;
-    color: white;
+    color: rgb(0, 0, 0);
 }
