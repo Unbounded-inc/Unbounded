@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../../../Styles/profile.css';
 
@@ -6,7 +6,7 @@ const Profile: React.FC = () => {
     const navigate = useNavigate();
     const [isEditing, setIsEditing] = useState(false);
 
-    //Load the saved data or use default data if this is the initial profile
+    // Load saved data or use default values
     const [name, setName] = useState(localStorage.getItem("name") || "John Doe");
     const [bio, setBio] = useState(localStorage.getItem("bio") || "This is my bio.");
     const [profilePic, setProfilePic] = useState(localStorage.getItem("profilePic") || "https://via.placeholder.com/100");
@@ -14,7 +14,7 @@ const Profile: React.FC = () => {
     const [notifications, setNotifications] = useState(localStorage.getItem("notifications") === "true");
     const [anonymity, setAnonymity] = useState(localStorage.getItem("anonymity") === "true");
 
-    //Convert the uploaded image to Base64 and store it so it saves upon refreshing the page
+    // Convert uploaded image to Base64 and save
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -28,8 +28,7 @@ const Profile: React.FC = () => {
         }
     };
 
-    //Save the profile data to localStorage
-    //Once we set up account creation we'll have to change this to save to the database
+    // Save profile data to localStorage
     const handleSave = () => {
         localStorage.setItem("name", name);
         localStorage.setItem("bio", bio);
@@ -40,23 +39,24 @@ const Profile: React.FC = () => {
         setIsEditing(false);
     };
 
-    //When you log out it clears the localStorage and returns you to the homepage, inshallah
+    // Clear localStorage and log out
     const handleLogout = () => {
         localStorage.clear();
         alert("Logged out! Profile deleted.");
-        navigate('/'); //This goes back to the homepage
+        navigate('/'); // Redirect to homepage
     };
 
     return (
         <div className="profile-container">
             <div className="profile-box">
                 <img src={profilePic} alt="Profile Avatar" className="profile-avatar" />
-                
+
                 {isEditing ? (
                     <>
                         <input type="file" accept="image/*" onChange={handleImageUpload} />
                         <input className="textfield" type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-                        <textarea className="textfield" placeholder="Bio" value={bio} onChange={(e) => setBio(e.target.value)}></textarea>
+
+                        <textarea className="textfield bio-textarea" placeholder="Bio" value={bio} onChange={(e) => setBio(e.target.value)}></textarea>
                         
                         <label>Privacy:</label>
                         <select value={privacy} onChange={(e) => setPrivacy(e.target.value)}>
@@ -76,7 +76,9 @@ const Profile: React.FC = () => {
                 ) : (
                     <>
                         <h2>{name}</h2>
-                        <p>{bio}</p>
+                        <div className="bio-container">
+                            <p>{bio}</p>
+                        </div>
                         <p><strong>Privacy:</strong> {privacy === "public" ? "Public Profile" : "Private Profile"}</p>
                         <p><strong>Notifications:</strong> {notifications ? "Enabled" : "Disabled"}</p>
                         <p><strong>Anonymity:</strong> {anonymity ? "Anonymous" : "Visible"}</p>
