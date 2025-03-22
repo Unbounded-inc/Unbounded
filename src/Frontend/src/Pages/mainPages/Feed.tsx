@@ -1,7 +1,6 @@
 import React from "react";
 import "../../Styles/Feed.css";
-import  "../../components/PageComponets/Sidebar.tsx";
-import Sidebar from "../../components/PageComponets/Sidebar.tsx";
+import Sidebar from "../../components/PageComponets/Sidebar";
 
 const Feed: React.FC = () => {
   return (

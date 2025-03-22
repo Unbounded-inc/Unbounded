@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "../../Styles/Sidebar.css";
 import {FiBook, FiHome, FiLogOut, FiMap, FiMessageSquare, FiSettings, FiUser, FiUsers} from "react-icons/fi";
-import ProfileIcon from "./ProfileIcon.tsx"; // Import the test image
+import ProfileIcon from "./ProfileIcon"; // Import the test image
 
 
 

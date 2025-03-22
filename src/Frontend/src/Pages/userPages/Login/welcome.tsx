@@ -5,7 +5,7 @@ import handsImage from "../../../assets/hands.png";
 import logoImage from "../../../assets/whitelogo.png";
 import colorLogo from "../../../assets/UnboundedColor.png";
 import LoginButton from "../../../components/Auth/LoginButton";
-import ResetPasswordModal from "../../../components/PageComponets/ResetPasswordModal.tsx";
+import ResetPasswordModal from "../../../components/PageComponets/ResetPasswordModal";
 
 const Welcome: React.FC = () => {
   const navigate = useNavigate();
