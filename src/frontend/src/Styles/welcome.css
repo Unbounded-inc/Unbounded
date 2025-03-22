@@ -127,3 +127,10 @@ button {
   color: black;
   margin: 5px;
 }
+
+.error {
+  color: red; /* or any color that contrasts with the background */
+  font-weight: bold;
+  margin-top: 5px;
+  text-align: center;
+}
