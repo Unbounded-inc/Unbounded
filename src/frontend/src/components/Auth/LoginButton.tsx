@@ -5,9 +5,10 @@ import axios from "axios";
 interface LoginButtonProps {
   email: string;
   password: string;
+  onSuccess?: () => void;
 }
 
-const LoginButton: React.FC<LoginButtonProps> = ({ email, password }) => {
+const LoginButton: React.FC<LoginButtonProps> = ({ email, password, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,6 +41,9 @@ const LoginButton: React.FC<LoginButtonProps> = ({ email, password }) => {
       // Store token
       localStorage.setItem("authToken", response.data.access_token);
       console.log("Login successful:", response.data);
+
+      if (onSuccess) onSuccess();
+
     } catch (err: any) {
       console.error("Login failed:", err.response?.data || err.message);
       setError(err.response?.data?.error_description || "Invalid credentials.");
