@@ -1,0 +1,132 @@
+/* ===== SIDEBAR DEFAULT STATE (Collapsed) ===== */
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 70px;
+    height: 100vh;
+    background: #f8f9fa;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: width 0.3s ease-in-out;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Expand sidebar when hovered */
+.sidebar.expanded {
+    width: 260px;
+    align-items: flex-start;
+    padding-left: 20px;
+}
+
+/* ===== PROFILE SECTION ===== */
+.profile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 40px;
+    text-align: center;
+    width: 100%;
+}
+
+/* Hide profile info when collapsed */
+.profile-info {
+    display: none;
+}
+
+.sidebar.expanded .profile-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.username {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 5px 0 2px;
+    color: #1a1a1a;
+}
+
+.handle {
+    font-size: 0.9rem;
+    color: gray;
+    margin: 0;
+    color: #1a1a1a;
+}
+
+/* ===== NAVIGATION LINKS ===== */
+.nav-links {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 20px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: #333;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 14px;
+    border-radius: 50px;
+    transition: background 0.3s ease-in-out;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Icon Styling */
+.nav-item .icon {
+    font-size: 20px;
+    min-width: 30px;
+    text-align: center;
+}
+
+/* Hover effect - purple background */
+.nav-item:hover {
+    background: #260b2a;
+    color: white;
+    border-radius: 50px;
+}
+
+/* Active page - stays purple */
+.nav-item.active {
+    background: #260b2a;
+    color: white;
+    font-weight: bold;
+    border-radius: 50px;
+}
+
+/* ===== LOGOUT BUTTON ===== */
+.logout {
+    margin-top: auto;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 14px;
+    background: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.logout-btn:hover {
+    background: #b71c1c;
+}
