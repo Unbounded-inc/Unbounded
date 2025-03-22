@@ -1,0 +1,53 @@
+.pfp-container {
+    position: relative;
+    width: 100px;
+    height: 75px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none !important;
+}
+
+.pfp-container.expanded {
+    width: 140px;
+    height: 85px;
+}
+
+.circle {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.pfp-circle {
+    background-color: #260b2a;
+    z-index: 2;
+}
+
+.logo-circle {
+    background-color: #260b2a;
+    right: -5px;
+    z-index: 1;
+}
+
+.pfp-image {
+    width: 90%;
+    height: 90%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.logo-image {
+    width: 70%;
+    height: 70%;
+    object-fit: contain;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-40%, -50%);
+}
