@@ -54,7 +54,8 @@ const Welcome: React.FC = () => {
           </p>
 
           <div style={{ width: "50%", margin: "5px" }} className="login-butto">
-            <LoginButton email={email} password={password} />
+            <LoginButton email={email} password={password} onSuccess={() => navigate("/feed")}
+            />
           </div>
 
           <span className="or">⎯⎯⎯⎯⎯⎯ or ⎯⎯⎯⎯⎯⎯</span>
