@@ -107,13 +107,14 @@
 /* ===== LOGOUT BUTTON ===== */
 .logout {
     margin-top: auto;
-    padding-top: 30px;
-    padding-bottom: 30px;
+    padding: 30px 0;
+    width: 100%;
 }
+
 
 .logout-btn {
     width: 100%;
-    padding: 14px;
+    padding: 14px 20px;
     background: #d32f2f;
     color: white;
     border: none;
@@ -126,6 +127,8 @@
     justify-content: center;
     gap: 10px;
 }
+
+
 
 .logout-btn:hover {
     background: #b71c1c;

@@ -11,6 +11,7 @@
 .pfp-container.expanded {
     width: 140px;
     height: 85px;
+    transform: translateX(-10px);
 }
 
 .circle {
