@@ -20,37 +20,26 @@ const Register: React.FC = () => {
 
         if (!email || !password || !firstName || !lastName) {
             setError("Please fill in all required fields.");
-            console.log("Missing input fields!");
             return;
         }
 
         try {
-            console.log("Sending signup request to Auth0...");
-            const response = await axios.post(
-              `https://${import.meta.env.VITE_AUTH0_DOMAIN}/dbconnections/signup`,
-              {
-                  client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
-                  email: email,
-                  password: password,
-                  connection: "Username-Password-Authentication",
-                  given_name: firstName,
-                  family_name: lastName
-              },
-              {
-                  headers: { "Content-Type": "application/json" }
-              }
-            );
+            console.log("Sending signup request to backend...");
+            const response = await axios.post("http://localhost:5001/auth/register", {
+                email,
+                password,
+                firstName,
+                lastName,
+            });
 
             console.log("Signup success:", response.data);
             setSuccess("Account created successfully! Redirecting to login...");
-            setTimeout(() => navigate('/'), 3000);
+            setTimeout(() => navigate("/"), 3000);
         } catch (err: any) {
             console.error("Signup failed:", err.response?.data || err.message);
-            setError(err.response?.data?.message || "Signup failed. Try again.");
+            setError(err.response?.data?.details || "Signup failed. Try again.");
         }
     };
-
-
 
     return (
     <div className="register-container">
@@ -77,7 +66,7 @@ const Register: React.FC = () => {
                     <input type="checkbox" id="terms" />
                     <label htmlFor="terms" className="terms-label">I agree to the general terms and conditions of use.</label>
                 </div>
-                
+
                 <button className="login-button" onClick={handleSignUp}>Sign Up</button>
                 <button className="register-button" onClick={() => navigate('/')}>Back to Login</button>
 
