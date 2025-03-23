@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
 
-
 interface LoginButtonProps {
   email: string;
   password: string;
@@ -19,34 +18,26 @@ const LoginButton: React.FC<LoginButtonProps> = ({ email, password, onSuccess })
     }
 
     setLoading(true);
+    setError("");
 
     try {
-      const response = await axios.post(
-        `https://${import.meta.env.VITE_AUTH0_DOMAIN}/oauth/token`,
-        {
-          grant_type: "password",
-          client_id: import.meta.env.VITE_AUTH0_CLIENT_ID,
-          client_secret: import.meta.env.VITE_AUTH0_CLIENT_SECRET,
-          username: email, // Received from props
-          password: password, // Received from props
-          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-          scope: "openid profile email",
-          connection: "Username-Password-Authentication",
-        },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const response = await axios.post("http://localhost:5001/auth/login", {
+        email,
+        password,
+      });
 
-      // Store token
-      localStorage.setItem("authToken", response.data.access_token);
+      const { access_token, id_token } = response.data;
+
+      // Store tokens in localStorage
+      localStorage.setItem("authToken", access_token);
+      localStorage.setItem("idToken", id_token);
+
       console.log("Login successful:", response.data);
 
       if (onSuccess) onSuccess();
-
     } catch (err: any) {
       console.error("Login failed:", err.response?.data || err.message);
-      setError(err.response?.data?.error_description || "Invalid credentials.");
+      setError(err.response?.data?.error || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -54,10 +45,14 @@ const LoginButton: React.FC<LoginButtonProps> = ({ email, password, onSuccess })
 
   return (
     <div>
-      <button style={{background: "#4c569e"}} onClick={handleLogin} disabled={loading}>
+      <button
+        style={{ background: "#4c569e", color: "white", padding: "8px 16px", border: "none", cursor: "pointer" }}
+        onClick={handleLogin}
+        disabled={loading}
+      >
         {loading ? "Logging in..." : "Log In"}
       </button>
-      {error && <p className="error">{error}</p>}
+      {error && <p className="error" style={{ color: "red" }}>{error}</p>}
     </div>
   );
 };
