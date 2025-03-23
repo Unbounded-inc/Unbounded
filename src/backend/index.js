@@ -14,6 +14,9 @@ app.use(express.json());
 const authRoutes = require("./routes/auth");
 app.use("/auth", authRoutes);
 
+const userRoutes = require("./routes/users");
+app.use("/api/users", userRoutes);
+
 const PORT = 5001;
 app.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
