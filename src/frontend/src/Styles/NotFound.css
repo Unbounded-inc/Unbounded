@@ -1,0 +1,58 @@
+.notfound-wrapper {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+
+    /* Gradient background inspired by signup page */
+    background: linear-gradient(to bottom, #260c29, #4c569e);
+}
+
+.notfound-content {
+    text-align: center;
+    max-width: 480px;
+    width: 100%;
+    padding: 2.5rem;
+    border-radius: 18px;
+    background-color: #ffffff;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.notfound-emoji {
+    font-size: 2.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.notfound-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1f1f1f;
+    margin-bottom: 0.75rem;
+}
+
+.notfound-text {
+    font-size: 1.125rem;
+    color: #444;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.notfound-button {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    background-color: #2c2456;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+}
+
+.notfound-button:hover {
+    background-color: #1e1a40;
+    transform: translateY(-2px);
+}
