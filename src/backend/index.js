@@ -1,10 +1,19 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
-require("dotenv").config();
+const path = require('path');
+require("dotenv").config({ path: path.resolve(__dirname, '../../.env')});
+
+
+
 
 const app = express();
-
+console.log("Database connection info:", {
+    user: process.env.PGUSER,
+    host: process.env.PGHOST,
+    database: process.env.PGDATABASE,
+    port: process.env.PGPORT
+  });
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true,
