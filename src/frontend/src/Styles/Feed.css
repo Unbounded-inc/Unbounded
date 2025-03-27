@@ -1,0 +1,333 @@
+.feed-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #f4f4f4;
+    padding-left: 1rem;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 100;
+  }
+
+  .feed-content {
+    flex: 1;
+    margin-left: 80px; 
+    padding: 1rem 2rem;
+    overflow-y: auto;
+    height: 100vh;
+    box-sizing: border-box;
+  }
+  
+  .feed-right-panel {
+    display: none;
+  }
+  
+  .feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: black;
+  }
+  
+  .feed-header h2 {
+    font-size: 2rem;
+    font-weight: bold;
+  }
+  
+  .feed-nav-options {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .dropdown {
+    padding: 0.4rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 0.95rem;
+    background-color: white;
+    cursor: pointer;
+    color: black;
+  }
+  
+  .hover-btn {
+    background: none;
+    border: none;
+    font-weight: bold;
+    font-size: 20px;
+    cursor: pointer;
+    margin: 5px;
+    color: black;
+
+  }
+  
+  .hover-btn:hover {
+    background-color: #ddd;
+  }
+  
+  .new-post {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #dddddd;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+  }
+  
+  
+  .profile-pic {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+  }
+  
+  .share-input {
+    flex: 1;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    background-color: white;
+    color: black;
+    height: 80px;
+    resize: none; 
+    overflow-y: auto;
+    line-height: 1.4;
+    vertical-align: top;
+  }
+
+  .file-upload-options {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.file-btn {
+  background-color: #e4e4e4;
+  color: #000;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background-color 0.2s ease;
+}
+
+.file-btn:hover {
+  background-color: #d1d1d1;
+}
+
+
+  .photo-upload {
+    font-size: 1.25rem;
+    cursor: pointer;
+  }
+  
+  .upload-btn {
+    background-color: #401f43;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    width: 7%;
+    margin: 3px;
+  }
+  
+  .upload-btn:hover {
+    background-color: #29132e;
+  }
+
+  .post {
+    background-color: #8b91d4;
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .post-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .post-user p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #333333;
+    font-weight: bold;
+  }
+  
+  .post-content {
+    margin: 0.5rem 0;
+    font-size: 1rem;
+    line-height: 1.4;
+    font-weight: bolder;
+  }
+  
+  .post-images {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0.5rem 0;
+  }
+  
+  .post-img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .post-actions {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 0.5rem;
+    justify-content: center;
+  }
+  
+  
+  .post-actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #401f43;
+    font-weight: 500;
+    width: 50%;
+    font-weight: bold;
+    justify-content: center;
+  }
+  
+  .post-actions button:focus {
+    outline: none;
+  }
+  
+  .nav-dropdown {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: transparent;
+    border: none;
+    font-weight: bold;
+    font-size: 20px;
+    color: black;
+    cursor: pointer;
+    padding-right: 1.2rem;
+    padding-left: 0.2rem;
+    position: relative;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 0.2rem center;
+    background-size: 25px;
+  }
+  
+  .button-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+
+  }
+  
+  .button-row .photo-upload {
+    align-self: flex-start;
+  }
+  
+  .button-row .upload-btn {
+    align-self: flex-end;
+    width: auto;
+  }
+  
+  .photo-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+  }
+  
+  .photo-icon {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .new-btn {
+    background-color: #dddddd;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    width: 7%;
+    margin: 3px;
+    color: black;
+    margin-left: 0px;
+  }
+
+  .new-btn:focus,
+.new-btn:focus-visible,
+.new-btn:active {
+  outline: none;
+  box-shadow: none;
+  background-color: inherit; 
+}
+
+strong {
+    color: black;
+}
+
+.feed-right-panel {
+    width: 290px;
+    padding: 1rem;
+    background-color: #f4f4f4;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .notification-panel {
+    width: 100%;
+    height: 100;
+    background-color: #f0f0f0;
+    border-radius: 16px;
+    padding: 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+  
+  .notification-panel h3 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+  }
+  
+  .notification-item {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background-color: white;
+    border-radius: 8px;
+    font-weight: bold;
+    color: black;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  }
+  
+  .action-icon {
+    width: 22px;
+    height: 22px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  
+  
