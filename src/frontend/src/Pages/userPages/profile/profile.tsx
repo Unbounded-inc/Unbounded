@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../../../Styles/profile.css";
-
-interface User {
-  id: string;
-  username: string;
-  bio: string;
-  profile_picture: string;
-  privacy: string;
-  notifications: boolean;
-  anonymity: boolean;
-}
+import {getUser,updateUser,User} from "../../../lib/api.ts";
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -22,11 +13,10 @@ const Profile: React.FC = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await fetch("http://localhost:5001/api/users/users");
-        const data = await response.json();
+        const data = await getUser(); // ✅ No type errors now
 
         if (data.users && data.users.length > 0) {
-          setUser(data.users[0]); // Assuming the first user for now
+          setUser(data.users[0]);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -58,22 +48,15 @@ const Profile: React.FC = () => {
     if (!user) return;
   
     try {
-      const response = await fetch(
-        `http://localhost:5001/api/users/edit/${user.id}`, // Make sure this route matches your backend
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            username: user.username,
-            bio: user.bio,
-            privacy: user.privacy,
-            notifications: user.notifications,
-            anonymity: user.anonymity,
-            profilePicture: user.profile_picture, // Make sure the key matches the backend
-          }),
-        }
-      );
-  
+      const response = await updateUser(user.id, {
+        username: user.username,
+        bio: user.bio,
+        privacy: user.privacy,
+        notifications: user.notifications,
+        anonymity: user.anonymity,
+        profile_picture: user.profile_picture,
+      });
+
       if (response.ok) {
         alert("Profile updated successfully!");
         setIsEditing(false);

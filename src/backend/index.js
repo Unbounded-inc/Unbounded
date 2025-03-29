@@ -25,7 +25,7 @@ app.use("/auth", authRoutes);
 const userRoutes = require("./routes/users");
 app.use("/api/users", userRoutes);
 
-const PORT = process.env.PGPORT || 8080;
+const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
     console.log(`Backend running on http://localhost:${PORT}`);
 });
