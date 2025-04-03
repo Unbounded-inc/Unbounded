@@ -47,7 +47,6 @@ const Messages: React.FC = () => {
       <Sidebar />
 
       <main className="feed-content" style={{ display: "flex", padding: 0 }}>
-        {/* Left Chat List */}
         <div className="messages-sidebar">
           <h2 className="feed-header" style={{ fontSize: "32px", marginBottom: "0.5rem" }}>
             Messages
@@ -87,7 +86,6 @@ const Messages: React.FC = () => {
           ))}
         </div>
 
-        {/* Chat Display */}
         <div className="chat-main">
           {!selectedChat && !isNewChat ? (
             <div className="empty-chat-msg">Select a conversation to start messaging</div>
@@ -147,7 +145,6 @@ const Messages: React.FC = () => {
         </div>
       </main>
 
-      {/* Right Panel */}
       <aside className="feed-right-panel">
         <div className="notification-panel">
           <h3>Notifications</h3>

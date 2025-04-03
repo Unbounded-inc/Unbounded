@@ -1,13 +1,10 @@
-/* ROOT CONTAINER (from Feed.css, ensure it's set) */
+
 .feed-container {
     display: flex;
     height: 100vh;
     overflow: hidden;
   }
 
-
-  
-  /* LEFT SIDEBAR */
   .messages-sidebar {
     width: 300px;
     background-color: #f4f4f4;
@@ -16,7 +13,6 @@
     overflow-y: auto;
   }
   
-  /* CHAT PREVIEW LIST */
   .chat-preview {
     background-color: #e4e4e4;
     padding: 0.75rem;
@@ -26,7 +22,6 @@
     margin-bottom: 1rem;
   }
   
-  /* MIDDLE CHAT PANEL */
   .chat-main {
     flex: 1;
     display: flex;
@@ -35,10 +30,9 @@
     height: 100vh;
     overflow: hidden;
     background-color: #f4f4f4;
-    border-right: 1px solid #ddd; /* ✅ Right border */
+    border-right: 1px solid #ddd; 
   }
   
-  /* HEADER (fixed height) */
   .chat-header {
     display: flex;
     justify-content: space-between;
@@ -69,7 +63,6 @@
     color: #29132e;
   }
   
-  /* MESSAGE SCROLLABLE AREA */
   .chat-messages {
     flex: 1;
     overflow-y: auto;
@@ -80,7 +73,6 @@
     box-sizing: border-box;
   }
   
-  /* CHAT BUBBLES */
   .chat-messages .post {
     display: inline-block;
     max-width: 65%;
@@ -88,8 +80,8 @@
     white-space: pre-wrap;
     padding: 0.75rem 1rem;
     border-radius: 16px;
-    background-color: #401f43; /* ✅ updated */
-    color: white;              /* ✅ ensure text is visible */
+    background-color: #401f43; 
+    color: white;              
   }
   
   
@@ -99,7 +91,6 @@
     align-self: flex-end;
   }
   
-  /* FIXED MESSAGE INPUT BOX */
   .message-box-wrapper {
     padding: 1rem 2rem;
     border-top: 1px solid #ddd;
@@ -111,7 +102,6 @@
     gap: 0.75rem;
   }
   
-  /* CLEAN TEXTAREA */
   .message-box-wrapper textarea {
     padding: 0.75rem 1rem;
     border-radius: 10px;
@@ -124,7 +114,6 @@
     box-sizing: border-box;
   }
   
-  /* BOTTOM BUTTON ROW */
   .button-row {
     display: flex;
     justify-content: space-between;
@@ -153,7 +142,6 @@
     text-decoration: underline;
   }
   
-  /* EMPTY CHAT MESSAGE */
   .empty-chat-msg {
     text-align: center;
     margin-top: 20%;
