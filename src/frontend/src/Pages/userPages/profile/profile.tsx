@@ -28,20 +28,47 @@ const Profile: React.FC = () => {
     fetchUser();
   }, []);
 
-  // Convert uploaded image to Base64 and update user data
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  const resizeImage = (file: File, maxSize = 300): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
       const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setUser((prevUser) =>
-          prevUser ? { ...prevUser, profile_picture: base64String } : null
-        );
+  
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
       };
+  
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const scale = Math.min(maxSize / img.width, maxSize / img.height);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+  
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject("Failed to get canvas context");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  
+        resolve(canvas.toDataURL("image/jpeg")); // Can be "image/png" too
+      };
+  
+      reader.onerror = (err) => reject(err);
       reader.readAsDataURL(file);
-    }
+    });
   };
+
+  // Convert uploaded image to Base64 and update user data
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    try {
+      const resizedBase64 = await resizeImage(file, 300); // Resize to max 300px
+      setUser((prevUser) =>
+        prevUser ? { ...prevUser, profile_picture: resizedBase64 } : null
+      );
+    } catch (err) {
+      console.error("Image resizing failed:", err);
+    }
+  }
+};
 
   // Save profile data to backend
   const handleSave = async () => {
