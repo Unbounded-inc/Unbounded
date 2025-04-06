@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import "./Messages.css"; 
-const socket = io("http://localhost:5001");
+const socket = io(import.meta.env.VITE_BACKEND_URL);
+
 
 const Chat = ({ currentUser, receiverId }) => {
   const [message, setMessage] = useState("");
