@@ -4,24 +4,31 @@ const socket = io("http://localhost:5001", {
   transports: ["websocket"]
 });
 
-socket.on("connect", () => {
-  console.log("Connected to Socket.IO!");
-  socket.emit("register-user", "test-user-123");
-  socket.emit("join-room", "room-abc");
+const senderId = "f87db0ec-dc0a-4f7c-af23-57ba8946a0b4";
+const receiverId = "5183f5aa-a36e-40a1-8073-f593d03698ea";
 
-  socket.emit("send-message", {
-    roomId: "room-abc",
-    message: {
-      sender: "test-user-123",
-      content: "Hello from test script!"
-    }
-  });
+socket.on("connect", () => {
+  console.log("Connected to Socket.IO server as", senderId);
+
+  socket.emit("register", senderId);
+
+  setTimeout(() => {
+    const message = {
+      senderId,
+      receiverId,
+      content: "testing test-socket",
+    };
+
+    socket.emit("send-message", message);
+    console.log("Message sent:", message);
+  }, 1000);
 });
+
 
 socket.on("receive-message", (msg) => {
   console.log("Message received:", msg);
 });
 
-socket.on("connect_error", (err) => {
-  console.error("Connection error:", err.message);
+socket.on("disconnect", () => {
+  console.log("Disconnected from server");
 });
