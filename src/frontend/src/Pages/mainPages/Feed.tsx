@@ -7,6 +7,8 @@ import icon from "../../assets/icon.png";
 import heart from "../../assets/like.png";
 import comment from "../../assets/comments.png";
 import share from "../../assets/shares.png";
+import PostTextBox from "../../components/PageComponets/PostTextBox";
+import PostUpload from "../../components/PageComponets/PostUploadButton";
 
 const Feed: React.FC = () => {
   const [postText, setPostText] = useState("");
@@ -40,23 +42,8 @@ const Feed: React.FC = () => {
         <div className="new-post">
           <img src={placeholder} alt="Profile" className="profile-pic" />
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <span
-              style={{
-                alignSelf: "flex-end",
-                fontSize: "0.85rem",
-                margin: "0px",
-                color: "#555",
-              }}
-            >
-              {280 - postText.length} characters left
-            </span>
-            <textarea
-              placeholder="Share something..."
-              className="share-input"
-              maxLength={280}
-              value={postText}
-              onChange={handleInputChange}
-            />
+          <PostTextBox postText={postText} onChange={handleInputChange} />
+
 
             <div className="button-row">
               <div style={{ display: "flex", alignItems: "center" }}>
@@ -79,7 +66,7 @@ const Feed: React.FC = () => {
                   Photo
                 </button>
               </div>
-              <button className="upload-btn">Upload</button>
+              <PostUpload />
             </div>
           </div>
         </div>
@@ -147,7 +134,6 @@ const Feed: React.FC = () => {
           </div>
         </div>
 
-        {/* Post 3 */}
         <div className="post">
           <div className="post-header">
             <img src={placeholder} alt="Profile" className="profile-pic" />

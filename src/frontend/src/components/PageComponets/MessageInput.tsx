@@ -1,6 +1,8 @@
 import React, { useRef, useState } from "react";
 import icon from "../../assets/icon.png";
 import "../../Styles/Messages.css";
+import SendMessage from "../../components/PageComponets/SendMessageButton";
+
 
 const MessageInput: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,9 +40,8 @@ const MessageInput: React.FC = () => {
           </span>
         </div>
 
-        <button className="upload-btn" onClick={handleSend}>
-          Send
-        </button>
+        <SendMessage onClick={handleSend} />
+
       </div>
     </div>
   );
