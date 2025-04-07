@@ -29,8 +29,19 @@ export const getUser = async (): Promise<{ users: User[] }> => {
   return await res.json();
 };
 
-// ✏️ Update user
-export const updateUser = async (id: string, data: Partial<User>) => {
+export const updateUser = async (
+  id: string,
+  data: {
+    first_name?: string;
+    last_name?: string;
+    bio?: string;
+    privacy?: string;
+    anonymity?: boolean;
+    profile_picture?: string;
+    notifications?: boolean;
+    username: string;
+  }
+) => {
   const res = await fetch(`${API_BASE}/api/users/edit/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -39,3 +50,4 @@ export const updateUser = async (id: string, data: Partial<User>) => {
 
   return res;
 };
+
