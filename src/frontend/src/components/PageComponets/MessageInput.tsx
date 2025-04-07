@@ -3,16 +3,27 @@ import icon from "../../assets/icon.png";
 import "../../Styles/Messages.css";
 import SendMessage from "../../components/PageComponets/SendMessageButton";
 
+interface Props {
+  socket: any;
+  senderId: string;
+  roomId: string;
+}
 
-const MessageInput: React.FC = () => {
+const MessageInput: React.FC<Props> = ({ socket, senderId, roomId }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
 
   const handleSend = () => {
-    if (text.trim()) {
-      console.log("Sending:", text);
-      setText("");
-    }
+    if (!text.trim()) return;
+
+    const message = {
+      senderId,
+      roomId,
+      content: text.trim(),
+    };
+
+    socket.emit("send-message", message);
+    setText("");
   };
 
   return (
@@ -23,6 +34,12 @@ const MessageInput: React.FC = () => {
         maxLength={280}
         value={text}
         onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
       />
 
       <div className="button-row">
@@ -41,10 +58,10 @@ const MessageInput: React.FC = () => {
         </div>
 
         <SendMessage onClick={handleSend} />
-
       </div>
     </div>
   );
 };
 
 export default MessageInput;
+
