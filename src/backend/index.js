@@ -98,6 +98,7 @@ io.on("connection", (socket) => {
 const postRoutes = require("./routes/posts");
 app.use("/api/posts", postRoutes);
 
+app.use("/uploads", express.static("uploads"));
 
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
