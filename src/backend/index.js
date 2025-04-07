@@ -5,6 +5,8 @@ require('dotenv').config();
 const http = require("http");
 const { Server } = require("socket.io");
 const pool = require("./config/db");
+const cookieParser = require("cookie-parser");
+const chatRoutes = require("./routes/chats");
 
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
@@ -30,9 +32,13 @@ console.log("Database connection info:", {
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 
+
+app.use(cookieParser());
+
 app.use("/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/chat-rooms", chatRoutes);
 
 const userSocketMap = {}; 
 
@@ -44,23 +50,37 @@ io.on("connection", (socket) => {
     console.log(`Registered user ${userId} to socket ${socket.id}`);
   });
 
-  socket.on("send-message", async ({ senderId, receiverId, content }) => {
-    try {
-      const result = await pool.query(
-        `INSERT INTO messages (sender_id, receiver_id, content) VALUES ($1, $2, $3) RETURNING *`,
-        [senderId, receiverId, content]
-      );
-      const message = result.rows[0];
+  socket.on("send-message", async ({ senderId, roomId, content }) => {
+      try {
+        const result = await pool.query(
+          `INSERT INTO messages (sender_id, room_id, content) VALUES ($1, $2, $3) RETURNING *`,
+          [senderId, roomId, content]
+        );
 
-      const recipientSocketId = userSocketMap[receiverId];
-      if (recipientSocketId) {
-        io.to(recipientSocketId).emit("receive-message", message);
-        console.log(`Message delivered to ${receiverId}`);
+        const message = result.rows[0];
+
+        // Optional: add username for rendering
+        const userResult = await pool.query(`SELECT username FROM users WHERE id = $1`, [senderId]);
+        const sender_username = userResult.rows[0]?.username || "Unknown";
+
+        const fullMessage = {
+          ...message,
+          sender_username,
+        };
+
+        // ✅ Broadcast to all users in the room
+        io.to(roomId).emit("receive-message", fullMessage);
+
+        console.log(`📨 Message broadcast to room ${roomId}`);
+      } catch (err) {
+        console.error("Error in send-message:", err);
       }
-    } catch (err) {
-      console.error("Error in send-message:", err);
-    }
-  });
+    });
+
+    socket.on("join-room", (roomId) => {
+      socket.join(roomId);
+      console.log(`🔗 Socket ${socket.id} joined room ${roomId}`);
+    });
 
   socket.on("disconnect", () => {
     console.log("Disconnected:", socket.id);

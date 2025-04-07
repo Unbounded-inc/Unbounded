@@ -122,30 +122,44 @@ router.delete("/remove/:id", async (req, res) => {
 // editing a user
 router.put("/edit/:id", async (req, res) => {
     const { id } = req.params;
-    const { username, email, phoneNumber, profilePicture, bio, firstName, lastName } = req.body;
+    const {
+        username,
+        email,
+        phoneNumber,
+        profile_picture,
+        bio,
+        first_name,
+        last_name,
+        privacy,
+        notifications,
+        is_anonymous
+    } = req.body;
 
     if (
-        !username && !email && !phoneNumber &&
-        !profilePicture && !bio && !firstName && !lastName
+        !username && !email && !phoneNumber && !profilePicture &&
+        !bio && !firstName && !lastName && anonymity === undefined
     ) {
         return res.status(400).json({ error: "At least one field must be updated" });
     }
 
     try {
-        // Dynamically build the update query based on provided fields
         let fields = [];
         let values = [];
         let index = 1;
 
-        if (username) { fields.push(`username = $${index++}`); values.push(username); }
-        if (email) { fields.push(`email = $${index++}`); values.push(email); }
-        if (phoneNumber) { fields.push(`phone_number = $${index++}`); values.push(phoneNumber); }
-        if (profilePicture) { fields.push(`profile_picture = $${index++}`); values.push(profilePicture); }
-        if (bio) { fields.push(`bio = $${index++}`); values.push(bio); }
-        if (firstName) { fields.push(`first_name = $${index++}`); values.push(firstName); }
-        if (lastName) { fields.push(`last_name = $${index++}`); values.push(lastName); }
+        if (username)       { fields.push(`username = $${index++}`); values.push(username); }
+        if (email)          { fields.push(`email = $${index++}`); values.push(email); }
+        if (phoneNumber)    { fields.push(`phone_number = $${index++}`); values.push(phoneNumber); }
+        if (profile_picture){ fields.push(`profile_picture = $${index++}`); values.push(profile_picture); }
+        if (bio)            { fields.push(`bio = $${index++}`); values.push(bio); }
+        if (first_name)     { fields.push(`first_name = $${index++}`); values.push(first_name); }
+        if (last_name)      { fields.push(`last_name = $${index++}`); values.push(last_name); }
+        if (privacy)        { fields.push(`privacy = $${index++}`); values.push(privacy); }
+        if (notifications !== undefined) { fields.push(`notifications = $${index++}`); values.push(notifications); }
+        if (is_anonymous !== undefined)  { fields.push(`is_anonymous = $${index++}`); values.push(is_anonymous); }
 
-        values.push(id); // Last parameter is always the ID
+
+        values.push(id);
         const query = `UPDATE users SET ${fields.join(", ")} WHERE id = $${index} RETURNING *`;
 
         const result = await db.query(query, values);
@@ -160,5 +174,45 @@ router.put("/edit/:id", async (req, res) => {
         res.status(500).json({ error: "Failed to update user", details: err.message });
     }
 });
+
+router.get("/username/:username", async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    const result = await db.query(
+      `SELECT id, username, profile_picture FROM users WHERE username = $1`,
+      [username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error fetching user by username:", err.message);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await db.query("SELECT * FROM users WHERE id = $1", [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error getting user by ID:", err.message);
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
+
 
 module.exports = router;
