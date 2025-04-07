@@ -13,7 +13,7 @@ console.log("Database connection info:", {
     host: process.env.PGHOST,
     database: process.env.PGDATABASE,
     port: process.env.PGPORT
-  });
+});
 app.use(cors({
     origin: "http://localhost:5173",
     credentials: true,
@@ -27,6 +27,9 @@ app.use("/auth", authRoutes);
 
 const userRoutes = require("./routes/users");
 app.use("/api/users", userRoutes);
+
+const postRoutes = require("./routes/posts");
+app.use("/api/posts", postRoutes);
 
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
