@@ -1,17 +1,18 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import "../../Styles/Sidebar.css";
-import {FiBook, FiHome, FiLogOut, FiMap, FiMessageSquare, FiSettings, FiUser, FiUsers} from "react-icons/fi";
-import ProfileIcon from "./ProfileIcon"; // Import the test image
-
-
+import { FiBook, FiHome, FiLogOut, FiMap, FiMessageSquare, FiSettings, FiUser, FiUsers } from "react-icons/fi";
+import ProfileIcon from "./ProfileIcon";
+import { useUser } from "../../lib/UserContext"; // ✅ Import user context
 
 function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
+  const { user, logout } = useUser(); // ✅ Access user and logout from context
 
-  const handleLogout = () => {
-    localStorage.removeItem("authToken")
+  const handleLogout = async () => {
+    await logout(); // ✅ Clear backend + frontend session
     navigate("/");
   };
 
@@ -21,13 +22,13 @@ function Sidebar() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Temp Profile Section */}
+      {/* Profile Section */}
       <div className="profile">
         <ProfileIcon isExpanded={isHovered} />
-        {isHovered && (
+        {isHovered && user && (
           <div className="profile-info">
-            <h2 className="username">Campana Stick</h2>
-            <p className="handle">@lukewarmcherrypepsi</p>
+            <h2 className="username">{user.first_name} {user.last_name}</h2>
+            <p className="handle">@{user.username}</p>
           </div>
         )}
       </div>
