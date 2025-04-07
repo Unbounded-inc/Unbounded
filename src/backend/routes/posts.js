@@ -1,22 +1,32 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
+const multer = require("multer");
+const path = require("path");
 
-// Create a new post
-router.post("/", async (req, res) => {
-    const { user_id, content, image_url, is_anonymous } = req.body;
+const storage = multer.diskStorage({
+    destination: "uploads/",
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    },
+});
+
+const upload = multer({ storage });
+
+router.post("/", upload.single("image"), async (req, res) => {
+    const { user_id, content, is_anonymous } = req.body;
+    const image_url = req.file ? `/uploads/${req.file.filename}` : null;
 
     if (!user_id || !content) {
         return res.status(400).json({ error: "user_id and content are required" });
     }
 
     try {
-        console.log("Incoming post:", { user_id, content, image_url, is_anonymous });
         const result = await db.query(
             `INSERT INTO posts (user_id, content, image_url, is_anonymous)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-            [user_id, content, image_url || null, is_anonymous || false]
+            [user_id, content, image_url, is_anonymous === "true"]
         );
 
         res.status(201).json({ message: "Post created", post: result.rows[0] });
@@ -27,7 +37,6 @@ router.post("/", async (req, res) => {
 });
 
 
-// Get all posts with user info
 router.get("/", async (req, res) => {
     try {
         const result = await db.query(`
