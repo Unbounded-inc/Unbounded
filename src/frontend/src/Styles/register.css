@@ -118,6 +118,13 @@
     position: relative;
 }
 
+.success {
+    color: black;
+    font-weight: bold;
+    margin-top: 10px;
+    text-align: center;
+}
+
 .terms input[type="checkbox"]:checked::after {
     content: "✓"; 
     color: white;
