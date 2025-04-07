@@ -11,8 +11,10 @@ const chatRoutes = require("./routes/chats");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const messageRoutes = require("./routes/messages"); 
+
 const app = express();
-const server = http.createServer(app); 
+
+const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
@@ -29,10 +31,12 @@ console.log("Database connection info:", {
   port: process.env.PGPORT,
 });
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(cors({
+  origin: "http://localhost:5173",
+  credentials: true
+}));
+
 app.use(express.json());
-
-
 app.use(cookieParser());
 
 app.use("/auth", authRoutes);
@@ -40,7 +44,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/chat-rooms", chatRoutes);
 
-const userSocketMap = {}; 
+const userSocketMap = {};
 
 io.on("connection", (socket) => {
   console.log("Socket connected:", socket.id);
@@ -51,36 +55,35 @@ io.on("connection", (socket) => {
   });
 
   socket.on("send-message", async ({ senderId, roomId, content }) => {
-      try {
-        const result = await pool.query(
-          `INSERT INTO messages (sender_id, room_id, content) VALUES ($1, $2, $3) RETURNING *`,
-          [senderId, roomId, content]
-        );
+    try {
+      const result = await pool.query(
+        `INSERT INTO messages (sender_id, room_id, content) VALUES ($1, $2, $3) RETURNING *`,
+        [senderId, roomId, content]
+      );
 
-        const message = result.rows[0];
+      const message = result.rows[0];
 
-        // Optional: add username for rendering
-        const userResult = await pool.query(`SELECT username FROM users WHERE id = $1`, [senderId]);
-        const sender_username = userResult.rows[0]?.username || "Unknown";
+      const userResult = await pool.query(`SELECT username FROM users WHERE id = $1`, [senderId]);
+      const sender_username = userResult.rows[0]?.username || "Unknown";
 
-        const fullMessage = {
-          ...message,
-          sender_username,
-        };
+      const fullMessage = {
+        ...message,
+        sender_username,
+      };
 
-        // ✅ Broadcast to all users in the room
-        io.to(roomId).emit("receive-message", fullMessage);
+      io.to(roomId).emit("receive-message", fullMessage);
 
-        console.log(`📨 Message broadcast to room ${roomId}`);
-      } catch (err) {
-        console.error("Error in send-message:", err);
-      }
-    });
+      console.log(`Message broadcast to room ${roomId}`);
+    } catch (err) {
+      console.error("Error in send-message:", err);
+    }
+  });
 
-    socket.on("join-room", (roomId) => {
-      socket.join(roomId);
-      console.log(`🔗 Socket ${socket.id} joined room ${roomId}`);
-    });
+
+  socket.on("join-room", (roomId) => {
+    socket.join(roomId);
+    console.log(`Socket ${socket.id} joined room ${roomId}`);
+  });
 
   socket.on("disconnect", () => {
     console.log("Disconnected:", socket.id);
@@ -92,8 +95,12 @@ io.on("connection", (socket) => {
     }
   });
 });
+const postRoutes = require("./routes/posts");
+app.use("/api/posts", postRoutes);
+
 
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Backend running at http://localhost:${PORT}`);
 });
+

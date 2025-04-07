@@ -3,26 +3,26 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    width: 100vw; /*Inshallah this works*/
+    width: 100vw;
     background: linear-gradient(to bottom, #260c29, #4c569e);
-    flex-grow: 1; 
+    flex-grow: 1;
 }
 
 .profile-box {
     background: white;
-    padding: 40px; 
+    padding: 25px;
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     text-align: center;
-    width: 600px; 
-    max-width: 90%; 
+    width: 600px;
+    max-width: 90%;
     color: black;
 }
 
 .profile-box h2,
 .profile-box p,
 .profile-box label {
-    color: black; 
+    color: black;
 }
 
 .profile-avatar {
@@ -36,6 +36,7 @@
     font-size: 50px;
     font-weight: bold;
     margin-bottom: 50px;
+    color: black;
 }
 
 .profile-form {
@@ -50,19 +51,22 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     font-size: 16px;
-    resize: none; 
+    resize: none;
+    color: black;
 }
 
 .bio-textarea {
     width: 100%;
-    height: 120px; /* Fixed height so it doesn’t get too large */
-    max-height: 200px; /* Prevents excessive growth */
-    overflow-y: auto; /* Enables scrolling instead of breaking out of the box */
-    resize: vertical; /* Allows controlled resizing */
+    height: 120px;
+    max-height: 200px;
+    overflow-y: auto;
+    resize: vertical;
+    color: black;
 }
 
-
-.save-button, .logout-button {
+/* Button styles */
+.save-button,
+.logout-button {
     width: 100%;
     padding: 10px;
     margin-top: 10px;
@@ -74,10 +78,112 @@
 
 .save-button {
     background-color: #4CAF50;
-    color: rgb(0, 0, 0);
+    color: black;
 }
 
 .logout-button {
     background-color: #d9534f;
-    color: rgb(0, 0, 0);
+    color: black;
 }
+
+/* === Register-style overrides === */
+.profile-box button {
+    background: #260c29;
+    color: white;
+    width: 65%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 8px auto;
+    display: block;
+}
+
+/* Input and textarea */
+.profile-input,
+.profile-textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+    background-color: white;
+    height: 45px;
+    font-size: 16px;
+    color: black;
+}
+
+.profile-textarea {
+    height: 90px;
+    max-height: 200px;
+    resize: vertical;
+    overflow-y: auto;
+    color: black;
+}
+
+/* Checkbox styling */
+.checkbox-label {
+    color: black;
+}
+
+.checkbox-label input[type="checkbox"] {
+    appearance: none;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+}
+
+.checkbox-label input[type="checkbox"]:checked {
+    background-color: #260c29;
+    border-color: #260c29;
+    position: relative;
+}
+
+.checkbox-label input[type="checkbox"]:checked::after {
+    content: "✓";
+    color: white;
+    font-size: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.box{
+    width: 14px;
+    height: 14px;
+    margin-left: 5px;
+}
+
+.pfp-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .upload-label {
+    font-size: 14px;
+    color: black;
+    width: 100%;
+    text-align: center;
+  }
+  
+  .file-input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+    background-color: white;
+    font-size: 16px;
+    color: black;
+  }
+  

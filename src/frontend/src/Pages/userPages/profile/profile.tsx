@@ -123,9 +123,11 @@ const Profile: React.FC = () => {
         {isEditing ? (
           <>
             <div className="pfp-upload">
-              <label>Upload New Profile Picture:</label>
-              <input type="file" accept="image/*" onChange={handleImageUpload}/>
-            </div>
+  <label className="upload-label">Upload New Profile Picture:</label>
+  <input type="file" accept="image/*" onChange={handleImageUpload} className="file-input"/>
+</div>
+
+            <label className="upload-label">Username:</label>
             <input
               type="text"
               name="username"
@@ -133,6 +135,7 @@ const Profile: React.FC = () => {
               onChange={handleChange}
               className="profile-input"
             />
+            <label className="upload-label">First Name:</label>
             <input
               type="text"
               name="first_name"
@@ -141,6 +144,7 @@ const Profile: React.FC = () => {
               className="profile-input"
               placeholder="First Name"
             />
+            <label className="upload-label">Last Name:</label>
             <input
               type="text"
               name="last_name"
@@ -149,15 +153,8 @@ const Profile: React.FC = () => {
               className="profile-input"
               placeholder="Last Name"
             />
-            <label className="checkbox-label">
-              <input
-                type="checkbox"
-                name="is_anonymous"
-                checked={localUser.is_anonymous}
-                onChange={handleChange}
-              />
-              Stay Anonymous
-            </label>
+           
+            <label className="upload-label">Biography:</label>
             <textarea
               name="bio"
               value={localUser.bio || ""}
@@ -165,19 +162,32 @@ const Profile: React.FC = () => {
               className="profile-textarea"
               placeholder="Your bio..."
             />
+            <div>
+            <label className="upload-label">
+            Stay Anonymous? 
+              <input
+                type="checkbox"
+                name="is_anonymous"
+                checked={localUser.is_anonymous}
+                onChange={handleChange}
+                className="box"
+              />
+            </label>
+            </div>
             <div className="edit-buttons">
-              <button onClick={handleSave}>Save</button>
-              <button onClick={() => setIsEditing(false)}>Cancel</button>
+              <button style={{backgroundColor:"rgb(76, 86, 158)"}} onClick={handleSave}>Save</button>
+              <button style={{backgroundColor:"#2c2456"}} onClick={() => setIsEditing(false)}>Cancel</button>
             </div>
           </>
         ) : (
           <>
-            <h2>{localUser.username}</h2>
-            <p>{localUser.bio || "No bio provided."}</p>
-            <p><strong>Email:</strong> {localUser.email}</p>
-            <p><strong>Name:</strong> {localUser.first_name} {localUser.last_name}</p>
-            <p><strong>Anonymous:</strong> {localUser.is_anonymous ? "Yes" : "No"}</p>
-            <button onClick={handleEditToggle}>Edit Profile</button>
+          <h2 style={{margin:'10px'}}>{localUser.first_name} {localUser.last_name}</h2>
+            <h3 style={{margin:'10px'}}>{localUser.username}</h3>
+            
+            <p style={{margin:'10px'}}>{localUser.bio || "No bio provided."}</p>
+            <p style={{margin:'10px'}}><strong>Email:</strong> {localUser.email}</p>
+            <p style={{margin:'10px', marginBottom:"15px"}}><strong>Anonymous:</strong> {localUser.is_anonymous ? "Yes" : "No"}</p>
+            <button style={{backgroundColor:"#2c2456"}} onClick={handleEditToggle}>Edit Profile</button>
           </>
         )}
 

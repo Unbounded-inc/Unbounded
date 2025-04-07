@@ -1,14 +1,15 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-
-// Function to check if user is authenticated (API-based)
-const isAuthenticated = () => {
-  const token = localStorage.getItem("authToken"); // Retrieve token
-  return !!token; // Returns true if token exists
-};
+import { useUser } from "../../lib/UserContext";
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  return isAuthenticated() ? <>{children}</> : <Navigate to="/" />;
+  const { user, loading } = useUser();
+
+  if (loading) {
+    return <p>Loading...</p>; // Or your own loading spinner
+  }
+
+  return user ? <>{children}</> : <Navigate to="/" />;
 };
 
 export default PrivateRoute;
