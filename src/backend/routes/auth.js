@@ -3,6 +3,9 @@ const axios = require("axios");
 const router = express.Router();
 const db = require("../config/db");
 const { loginWithAuth0 } = require("../services/auth0Service");
+const path = require("path");
+const verifyUser = require(path.join(__dirname, "../middleware/verifyUser"));
+console.log("verifyUser is:", verifyUser);
 
 router.post("/login", async (req, res) => {
     const { email: loginIdentifier, password } = req.body;
@@ -23,9 +26,15 @@ router.post("/login", async (req, res) => {
     }
 
     const result = await loginWithAuth0(emailToUse, password);
+    console.log("Auth0 login result:", result);
 
     if (result.error) {
         return res.status(401).json(result);
+    }
+
+    const idToken = result.id_token;
+    if (!idToken) {
+        return res.status(401).json({ error: "No ID token returned from Auth0" });
     }
 
     try {
@@ -34,9 +43,17 @@ router.post("/login", async (req, res) => {
             return res.status(403).json({ error: "Auth0 login succeeded, but user not found in DB" });
         }
 
+        // ✅ Set secure session cookie
+        res.cookie("token", idToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
         return res.json({
-            ...result,        // Auth0 tokens
-            user: userRes.rows[0],  // Your DB info
+            message: "Login successful",
+            user: userRes.rows[0],
         });
 
     } catch (err) {
@@ -44,7 +61,6 @@ router.post("/login", async (req, res) => {
         return res.status(500).json({ error: "Login failed", details: err.message });
     }
 });
-
 
 router.post("/register", async (req, res) => {
     const { email, password, firstName, lastName } = req.body;
@@ -74,6 +90,35 @@ router.post("/register", async (req, res) => {
         });
     }
 });
+
+router.get("/me", verifyUser, async (req, res) => {
+    try {
+        const email = req.user.email;
+        const user = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+
+        if (user.rowCount === 0) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const { password_hash, ...safeUser } = user.rows[0];
+        res.json({ user: safeUser });
+
+    } catch (err) {
+        console.error("Error fetching user:", err.message);
+        res.status(500).json({ error: "Failed to fetch user" });
+    }
+});
+
+router.post("/logout", (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/", // ✅ This makes sure the cookie path matches
+    });
+    res.json({ message: "Logged out" });
+});
+
 
 
 module.exports = router;
