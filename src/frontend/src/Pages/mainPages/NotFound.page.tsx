@@ -1,8 +1,18 @@
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../lib/UserContext';
 import '../../Styles/NotFound.css';
 
 export function NotFoundPage() {
   const navigate = useNavigate();
+  const { user } = useUser();
+
+  const handleRedirect = () => {
+    if (user) {
+      navigate('/feed');
+    } else {
+      navigate('/');
+    }
+  };
 
   return (
     <div className="notfound-wrapper">
@@ -14,7 +24,7 @@ export function NotFoundPage() {
           <br />
           But don’t worry — you’re still Unbounded.
         </p>
-        <button className="notfound-button" onClick={() => navigate('/')}>
+        <button className="notfound-button" onClick={handleRedirect}>
           Back to Home
         </button>
       </div>
