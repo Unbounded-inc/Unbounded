@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import '../../../Styles/register.css';
 import { useNavigate } from 'react-router-dom';
 import logoImage from "../../../assets/whitelogo.png";
@@ -12,6 +12,7 @@ const Register: React.FC = () => {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [areaCode, setAreaCode] = useState("+1");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
@@ -25,11 +26,13 @@ const Register: React.FC = () => {
             return;
         }
 
+        const cleanedPhone = phoneNumber.replace(/\D/g, ''); // remove non-numeric chars
+
         try {
             const response = await axios.post("http://localhost:5001/api/users/add", {
                 username,
                 email,
-                phoneNumber,
+                phoneNumber: `${areaCode}${cleanedPhone}`,
                 password,
                 firstName,
                 lastName,
@@ -69,8 +72,26 @@ const Register: React.FC = () => {
                     <input className="textfield" type="password" placeholder="Password" value={password}
                         onChange={(e) => setPassword(e.target.value)} />
 
-                    <input className="textfield" type="text" placeholder="Phone Number" value={phoneNumber}
-                        onChange={(e) => setPhoneNumber(e.target.value)} />
+                    <div className="phone-row">
+                        <select
+                            className="textfield3"
+                            value={areaCode}
+                            onChange={(e) => setAreaCode(e.target.value)}
+                        >
+                            <option value="+1">+1 (US)</option>
+                            <option value="+52">+52 (MX)</option>
+                            <option value="+44">+44 (UK)</option>
+                            <option value="+91">+91 (IN)</option>
+                            <option value="+81">+81 (JP)</option>
+                        </select>
+                        <input
+                            className="textfield2"
+                            type="text"
+                            placeholder="Phone Number"
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                        />
+                    </div>
 
                     <div className="terms">
                         <input type="checkbox" id="terms" />

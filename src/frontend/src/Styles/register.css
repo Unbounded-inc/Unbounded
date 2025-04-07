@@ -62,6 +62,39 @@
     height: 45px;
 }
 
+.textfield2 {
+    width: 90%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+    background-color: white;
+    height: 45px;
+    color: black;
+}
+
+.phone-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 10px;
+}
+
+
+.textfield3 {
+    color: black;
+    width: 10%;
+    padding: 12px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+    background-color: white;
+    height: 45px;
+}
+
 .terms {
     display: flex;
     align-items: center;
@@ -127,3 +160,4 @@
     left: 50%;
     transform: translate(-50%, -50%);
 }
+
