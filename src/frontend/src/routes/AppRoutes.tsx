@@ -5,7 +5,9 @@ import Profile from "../Pages/userPages/profile/profile";
 import Feed from "../Pages/mainPages/Feed";
 import { NotFoundPage } from "../Pages/mainPages/NotFound.page.tsx";
 import Messages from "../Pages/mainPages/Messages.tsx";
-import PrivateRoute from "../components/Auth/PrivateRoute.tsx"; // ✅ Import your wrapper
+import PrivateRoute from "../components/Auth/PrivateRoute.tsx";
+import Friends from "../Pages/mainPages/Friends.tsx";
+
 
 const AppRoutes = () => {
   return (
@@ -36,6 +38,14 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <Messages />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/friends"
+          element={
+            <PrivateRoute>
+              <Friends />
             </PrivateRoute>
           }
         />
