@@ -1,0 +1,88 @@
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 420px; 
+  }
+  
+  .modal-content h2 {
+    color: black;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+  }
+  
+  .modal-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .modal-input {
+    width: 90%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 1rem;
+    background-color: white;
+    color: black;
+  }
+  
+  .modal-textarea {
+    width: 90%;
+    padding: 0.75rem 1rem;
+    height: 100px;
+    resize: vertical;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 1rem;
+    background-color: white;
+    color: black;
+  }
+  
+  .modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    width: 90%;
+    margin-top: 1rem;
+  }
+  
+  .modal-button-cancel {
+    background-color: #ccc;
+    color: black;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    flex: 1;
+    margin-right: 0.5rem;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .modal-button-save {
+    background-color: #4c569e;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    flex: 1;
+    margin-left: 0.5rem;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  

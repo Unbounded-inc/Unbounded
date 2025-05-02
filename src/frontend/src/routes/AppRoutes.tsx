@@ -7,6 +7,7 @@ import { NotFoundPage } from "../Pages/mainPages/NotFound.page.tsx";
 import Messages from "../Pages/mainPages/Messages.tsx";
 import PrivateRoute from "../components/Auth/PrivateRoute.tsx";
 import Friends from "../Pages/mainPages/Friends.tsx";
+import Events from "../Pages/mainPages/Events";
 
 
 const AppRoutes = () => {
@@ -49,6 +50,15 @@ const AppRoutes = () => {
             </PrivateRoute>
           }
         />
+
+<Route
+  path="/map"
+  element={
+    <PrivateRoute>
+      <Events />
+    </PrivateRoute>
+  }
+/>
 
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
