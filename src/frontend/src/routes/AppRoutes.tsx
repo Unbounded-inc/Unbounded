@@ -8,7 +8,7 @@ import Messages from "../Pages/mainPages/Messages.tsx";
 import PrivateRoute from "../components/Auth/PrivateRoute.tsx";
 import Friends from "../Pages/mainPages/Friends.tsx";
 import Events from "../Pages/mainPages/Events";
-
+import Forums from "../Pages/mainPages/Forums";
 
 const AppRoutes = () => {
   return (
@@ -17,7 +17,6 @@ const AppRoutes = () => {
         <Route path="/" element={<Welcome />} />
         <Route path="/register" element={<Register />} />
 
-        {/* ✅ Protected Routes */}
         <Route
           path="/profile"
           element={
@@ -56,6 +55,15 @@ const AppRoutes = () => {
   element={
     <PrivateRoute>
       <Events />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/forums"
+  element={
+    <PrivateRoute>
+      <Forums />
     </PrivateRoute>
   }
 />
