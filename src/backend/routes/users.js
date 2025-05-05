@@ -213,6 +213,143 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Secure password update route
+router.put("/edit-password-secure", async (req, res) => {
+    const { userId, currentPassword, newPassword } = req.body;
+
+    if (!userId || !currentPassword || !newPassword) {
+        return res.status(400).json({ error: "Missing fields" });
+    }
+
+    try {
+        const userRes = await db.query("SELECT * FROM users WHERE id = $1", [userId]);
+        if (userRes.rowCount === 0) return res.status(404).json({ error: "User not found" });
+
+        const valid = await bcrypt.compare(currentPassword, userRes.rows[0].password_hash);
+        if (!valid) return res.status(401).json({ error: "Incorrect current password" });
+
+        const tokenRes = await axios.post(`https://${process.env.AUTH0_DOMAIN}/oauth/token`, {
+            client_id: process.env.AUTH0_CLIENT_ID,
+            client_secret: process.env.AUTH0_CLIENT_SECRET,
+            audience: `https://${process.env.AUTH0_DOMAIN}/api/v2/`,
+            grant_type: "client_credentials",
+        });
+
+        const hashed = await bcrypt.hash(newPassword, 10);
+        await db.query("UPDATE users SET password_hash = $1 WHERE id = $2", [hashed, userId]);
+
+        await axios.patch(
+            `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${encodeURIComponent(userRes.rows[0].auth0_id)}`,
+            { password: newPassword },
+            { headers: { Authorization: `Bearer ${tokenRes.data.access_token}` } }
+        );
+
+        res.json({ message: "Password updated" });
+    } catch (err) {
+        console.error("Password update failed:", err);
+        res.status(500).json({ error: "Password update failed", details: err.message });
+    }
+});
+
+router.put("/edit-email-secure", async (req, res) => {
+    const { userId, currentEmail, newEmail, currentPassword } = req.body;
+
+    if (!userId || !currentEmail || !newEmail || !currentPassword) {
+        return res.status(400).json({ error: "Missing fields" });
+    }
+
+    try {
+        const userRes = await db.query("SELECT * FROM users WHERE id = $1", [userId]);
+        if (userRes.rowCount === 0) return res.status(404).json({ error: "User not found" });
+
+        const user = userRes.rows[0];
+
+        if (user.email !== currentEmail) {
+            return res.status(401).json({ error: "Current email does not match" });
+        }
+
+        const validPass = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!validPass) return res.status(401).json({ error: "Incorrect current password" });
+
+        const tokenRes = await axios.post(`https://${process.env.AUTH0_DOMAIN}/oauth/token`, {
+            client_id: process.env.AUTH0_CLIENT_ID,
+            client_secret: process.env.AUTH0_CLIENT_SECRET,
+            audience: `https://${process.env.AUTH0_DOMAIN}/api/v2/`,
+            grant_type: "client_credentials",
+        });
+
+        const mgmtToken = tokenRes.data.access_token;
+
+        await axios.patch(
+            `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${encodeURIComponent(user.auth0_id)}`,
+            {
+                email: newEmail,
+                verify_email: true,
+            },
+            { headers: { Authorization: `Bearer ${mgmtToken}` } }
+        );
+
+        const update = await db.query(
+            "UPDATE users SET email = $1 WHERE id = $2 RETURNING *",
+            [newEmail, userId]
+        );
+
+        res.json({ message: "Email updated", user: update.rows[0] });
+    } catch (err) {
+        console.error("Email update failed:", err.response?.data || err.message);
+        res.status(500).json({ error: "Email update failed", details: err.message });
+    }
+});
+
+router.put("/edit-phone-secure", async (req, res) => {
+    const { userId, currentPhone, newPhone, currentPassword } = req.body;
+
+    if (!userId || !currentPhone || !newPhone || !currentPassword) {
+        return res.status(400).json({ error: "Missing fields" });
+    }
+
+    try {
+        const userRes = await db.query("SELECT * FROM users WHERE id = $1", [userId]);
+        if (userRes.rowCount === 0) return res.status(404).json({ error: "User not found" });
+
+        const user = userRes.rows[0];
+
+        if (user.phone_number !== currentPhone) {
+            return res.status(401).json({ error: "Current phone number does not match" });
+        }
+
+        const validPass = await bcrypt.compare(currentPassword, user.password_hash);
+        if (!validPass) return res.status(401).json({ error: "Incorrect current password" });
+
+        const tokenRes = await axios.post(`https://${process.env.AUTH0_DOMAIN}/oauth/token`, {
+            client_id: process.env.AUTH0_CLIENT_ID,
+            client_secret: process.env.AUTH0_CLIENT_SECRET,
+            audience: `https://${process.env.AUTH0_DOMAIN}/api/v2/`,
+            grant_type: "client_credentials",
+        });
+
+        const mgmtToken = tokenRes.data.access_token;
+
+        await axios.patch(
+            `https://${process.env.AUTH0_DOMAIN}/api/v2/users/${encodeURIComponent(user.auth0_id)}`,
+            {
+                phone_number: newPhone,
+            },
+            { headers: { Authorization: `Bearer ${mgmtToken}` } }
+        );
+
+        const update = await db.query(
+            "UPDATE users SET phone_number = $1 WHERE id = $2 RETURNING *",
+            [newPhone, userId]
+        );
+
+        res.json({ message: "Phone number updated", user: update.rows[0] });
+    } catch (err) {
+        console.error("Phone update failed:", err.response?.data || err.message);
+        res.status(500).json({ error: "Phone update failed", details: err.message });
+    }
+});
+
 
 
 module.exports = router;
