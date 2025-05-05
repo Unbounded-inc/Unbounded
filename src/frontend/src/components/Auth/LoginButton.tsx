@@ -34,10 +34,10 @@ const LoginButton: React.FC<LoginButtonProps> = ({ email, password, onSuccess })
 
       await fetchUser(); // ✅ immediately update context
 
-      const id = response.data?.user?.id || response.data?.user?.auth0_id;
-      if (id) {
-        localStorage.setItem("auth0_id", id);
-        console.log("Saved auth0_id to localStorage:", id);
+      const userId = response.data?.user?.id || response.data?.user?.id;
+      if (userId) {
+        localStorage.setItem("user_id", userId);
+        console.log("Saved auth0_id to localStorage:", userId);
       }
 
       if (onSuccess) onSuccess(); // ✅ optional navigation

@@ -39,7 +39,7 @@ const Events: React.FC = () => {
           </div>
 
           <div style={{ width: "100%", height: "400px", margin: "2rem 0" }}>
-            <MapContainer center={[40.77, -73.95]} zoom={12} style={{ height: "100%", width: "100%" }}>
+            <MapContainer center={[40.77, -73.95] as [number, number]} zoom={12} style={{ height: "100%", width: "100%" }}>
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap contributors"
