@@ -4,9 +4,18 @@ import "../../Styles/CreateForumModal.css";
 interface CreateForumModalProps {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
+  addForum: (forum: {
+    id: number;
+    title: string;
+    body: string;
+    tags: string[];
+    author: string;
+    date: string;
+  }) => void;
 }
 
-const CreateForumModal: React.FC<CreateForumModalProps> = ({ showModal, setShowModal }) => {
+
+const CreateForumModal: React.FC<CreateForumModalProps> = ({ showModal, setShowModal, addForum }) => {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -24,6 +33,27 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({ showModal, setShowM
   const handleRemoveTag = (index: number) => {
     setTags(tags.filter((_, i) => i !== index));
   };
+
+  const handleSubmit = () => {
+    if (!title.trim() || !body.trim()) return;
+
+    const newForum = {
+      id: Date.now(), // temporary unique ID
+      title,
+      body,
+      tags,
+      author: "manny", // TODO: replace with actual user later
+      date: new Date().toLocaleDateString()
+    };
+
+    addForum(newForum);
+    setTitle("");
+    setBody("");
+    setTags([]);
+    setTagInput("");
+    setShowModal(false);
+  };
+
 
   return (
     <div className="forum-create-overlay">
@@ -72,7 +102,7 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({ showModal, setShowM
             <button className="forum-create-cancel-btn" onClick={() => setShowModal(false)}>
               Cancel
             </button>
-            <button className="forum-create-submit-btn">
+            <button className="forum-create-submit-btn" onClick={handleSubmit}>
               Post
             </button>
           </div>

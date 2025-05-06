@@ -7,42 +7,42 @@ import share from "../../assets/shares.png";
 import Sidebar from "../../components/PageComponets/Sidebar";
 import CreateForumModal from "../../components/PageComponets/CreateForumModal";
 
-const forums = [
-  {
-    id: 1,
-    title: "All Lowercase Example",
-    date: "9/10/2011",
-    body: "blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah...",
-    tags: ["Example"],
-    author: "isabel"
-  },
-  {
-    id: 2,
-    title: "ALL UPPERCASE EXAMPLE",
-    date: "10/10/2011",
-    body: "BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH...",
-    tags: ["Test"],
-    author: "calvin"
-  },
-  {
-    id: 3,
-    title: "MiXeD CaSe Example",
-    date: "11/10/2011",
-    body: "BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh...",
-    tags: ["Tag"],
-    author: "manny"
-  },
-  {
-    id: 4,
-    title: "Unique Content Example",
-    date: "12/10/2011",
-    body: "This forum post contains entirely different content than just blahs. It discusses real things for once, hooray!",
-    tags: ["Discussion"],
-    author: "arsen"
-  }
-];
-
 const Forums: React.FC = () => {
+  const [forums, setForums] = useState([
+    {
+      id: 1,
+      title: "All Lowercase Example",
+      date: "9/10/2011",
+      body: "blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah...",
+      tags: ["Example"],
+      author: "isabel"
+    },
+    {
+      id: 2,
+      title: "ALL UPPERCASE EXAMPLE",
+      date: "10/10/2011",
+      body: "BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH BLAH...",
+      tags: ["Test"],
+      author: "calvin"
+    },
+    {
+      id: 3,
+      title: "MiXeD CaSe Example",
+      date: "11/10/2011",
+      body: "BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh BlAh...",
+      tags: ["Tag"],
+      author: "manny"
+    },
+    {
+      id: 4,
+      title: "Unique Content Example",
+      date: "12/10/2011",
+      body: "This forum post contains entirely different content than just blahs. It discusses real things for once, hooray!",
+      tags: ["Discussion"],
+      author: "arsen"
+    }
+  ]);
+
   const [selectedForum, setSelectedForum] = useState<any | null>(null);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState([
@@ -57,6 +57,10 @@ const Forums: React.FC = () => {
     if (!commentText.trim() || !selectedForum) return;
     setComments([...comments, { forumId: selectedForum.id, content: commentText }]);
     setCommentText("");
+  };
+
+  const handleAddForum = (newForum: any) => {
+    setForums((prev) => [...prev, newForum]);
   };
 
   return (
@@ -131,7 +135,6 @@ const Forums: React.FC = () => {
             </div>
 
             <div className="modal-buttons">
-
               <button className="modal-button-cancel" onClick={() => setSelectedForum(null)}>Close</button>
               <button className="modal-button-save" onClick={handleAddComment}>Comment</button>
             </div>
@@ -159,7 +162,11 @@ const Forums: React.FC = () => {
         </div>
       )}
 
-      <CreateForumModal showModal={showCreateModal} setShowModal={setShowCreateModal} />
+      <CreateForumModal
+        showModal={showCreateModal}
+        setShowModal={setShowCreateModal}
+        addForum={handleAddForum}
+      />
 
       <aside className="feed-right-panel">
         <div className="notification-panel">
