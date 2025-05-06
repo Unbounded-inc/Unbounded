@@ -4,6 +4,7 @@ const pool = require("../config/db");
 
 const router = express.Router();
 
+// Create new forum
 router.post("/", async (req, res) => {
   const { title, description, created_by, tags = [], is_anonymous = false } = req.body;
 
@@ -15,23 +16,45 @@ router.post("/", async (req, res) => {
     const id = uuidv4();
     const created_at = new Date();
 
-    const result = await pool.query(
+    const insertResult = await pool.query(
         `INSERT INTO forums (id, title, description, created_by, tags, is_anonymous, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-           RETURNING *`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
         [id, title, description, created_by, tags, is_anonymous, created_at]
     );
 
-    res.status(201).json(result.rows[0]);
+    const forum = insertResult.rows[0];
+
+    // Fetch user info for the newly created forum
+    const userResult = await pool.query(
+        `SELECT id, username, profile_picture FROM users WHERE id = $1`,
+        [created_by]
+    );
+
+    forum.created_by_user = userResult.rows[0];
+    res.status(201).json(forum);
   } catch (err) {
     console.error("Error creating forum:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
+// Get all forums with user info
 router.get("/", async (req, res) => {
   try {
-    const result = await pool.query(`SELECT * FROM forums ORDER BY created_at DESC`);
+    const result = await pool.query(`
+      SELECT 
+        forums.*,
+        json_build_object(
+          'id', users.id,
+          'username', users.username,
+          'profile_picture', users.profile_picture
+        ) AS created_by_user
+      FROM forums
+      JOIN users ON forums.created_by = users.id
+      ORDER BY forums.created_at DESC
+    `);
+
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching forums:", err);
@@ -39,6 +62,7 @@ router.get("/", async (req, res) => {
   }
 });
 
+// Add a comment to a forum
 router.post("/:forumId/comments", async (req, res) => {
   const { forumId } = req.params;
   const { user_id, content } = req.body;
@@ -51,28 +75,40 @@ router.post("/:forumId/comments", async (req, res) => {
     const id = uuidv4();
     const created_at = new Date();
 
-    const result = await pool.query(
+    const insertResult = await pool.query(
         `INSERT INTO forum_threads (id, forum_id, user_id, content, created_at)
-         VALUES ($1, $2, $3, $4, $5)
-           RETURNING *`,
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
         [id, forumId, user_id, content, created_at]
     );
 
-    res.status(201).json(result.rows[0]);
+    res.status(201).json(insertResult.rows[0]);
   } catch (err) {
     console.error("Error posting comment:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
+// Get comments for a forum with user info
 router.get("/:forumId/comments", async (req, res) => {
   const { forumId } = req.params;
 
   try {
     const result = await pool.query(
-        `SELECT * FROM forum_threads WHERE forum_id = $1 ORDER BY created_at ASC`,
+        `SELECT 
+         forum_threads.*,
+         json_build_object(
+           'id', users.id,
+           'username', users.username,
+           'profile_picture', users.profile_picture
+         ) AS user
+       FROM forum_threads
+       JOIN users ON forum_threads.user_id = users.id
+       WHERE forum_threads.forum_id = $1
+       ORDER BY forum_threads.created_at ASC`,
         [forumId]
     );
+
     res.status(200).json(result.rows);
   } catch (err) {
     console.error("Error fetching comments:", err);

@@ -1,27 +1,26 @@
 import React, { useState } from "react";
 import "../../Styles/CreateForumModal.css";
+import { useUser } from "../../lib/UserContext";
 
 interface CreateForumModalProps {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
-  addForum: (forum: {
-    id: number;
-    title: string;
-    body: string;
-    tags: string[];
-    author: string;
-    date: string;
-  }) => void;
+  addForum: (forum: any) => void;
 }
 
-
-const CreateForumModal: React.FC<CreateForumModalProps> = ({ showModal, setShowModal, addForum }) => {
+const CreateForumModal: React.FC<CreateForumModalProps> = ({
+                                                             showModal,
+                                                             setShowModal,
+                                                             addForum,
+                                                           }) => {
+  const { user } = useUser(); // ✅ use context
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!showModal) return null;
+  if (!showModal || !user) return null; // ✅ must be logged in
 
   const handleAddTag = () => {
     if (tagInput.trim() && tags.length < 3) {
@@ -34,26 +33,50 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({ showModal, setShowM
     setTags(tags.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title.trim() || !body.trim()) return;
 
-    const newForum = {
-      id: Date.now(), // temporary unique ID
-      title,
-      body,
-      tags,
-      author: "manny", // TODO: replace with actual user later
-      date: new Date().toLocaleDateString()
-    };
+    setIsSubmitting(true);
 
-    addForum(newForum);
-    setTitle("");
-    setBody("");
-    setTags([]);
-    setTagInput("");
-    setShowModal(false);
+    try {
+      const res = await fetch("http://localhost:5001/api/forums", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title,
+          description: body,
+          tags,
+          created_by: user.id,
+          is_anonymous: false,
+        }),
+      });
+
+      if (!res.ok) throw new Error("Failed to create forum");
+
+      const newForum = await res.json();
+
+      // ✅ add full user info to new forum object
+      addForum({
+        ...newForum,
+        created_by_user: {
+          username: user.username,
+          profile_picture: user.profile_picture,
+        },
+      });
+
+      setTitle("");
+      setBody("");
+      setTags([]);
+      setTagInput("");
+      setShowModal(false);
+    } catch (err) {
+      console.error("Error creating forum:", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
-
 
   return (
     <div className="forum-create-overlay">
@@ -102,8 +125,12 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({ showModal, setShowM
             <button className="forum-create-cancel-btn" onClick={() => setShowModal(false)}>
               Cancel
             </button>
-            <button className="forum-create-submit-btn" onClick={handleSubmit}>
-              Post
+            <button
+              className="forum-create-submit-btn"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Posting..." : "Post"}
             </button>
           </div>
         </div>

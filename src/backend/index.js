@@ -98,8 +98,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-const postRoutes = require("./routes/posts");
-app.use("/api/posts", postRoutes);
 
 const eventRoutes = require("./routes/events");
 app.use("/api/events", eventRoutes);
