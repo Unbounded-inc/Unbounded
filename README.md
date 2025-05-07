@@ -143,12 +143,12 @@ We are currently using **DigitalOcean App Platform** and **Droplets** for hostin
 |-------------------------------|---------------|
 | Auth + Profile System         | ✅ Completed  |
 | Community Feed                | ✅ Completed  |
-| Forums                        | ⏳ Planned  |
+| Forums                        | ✅ Completed |
 | Messaging (1-1 + Group Chat)  | 🚧 In Progress |
 | Map + Events Page             | ⏳ Planned  |
 | Moderation Tools              | ⏳ Planned|
 | Notifications                 | 🚧 In Progress|
-| Friend System                 | ⏳ Planned    |
+| Friend System                 | 🚧 In Progress    |
 | Advanced Moderation & Gamification | ⏳ Planned    |
 
 ---
