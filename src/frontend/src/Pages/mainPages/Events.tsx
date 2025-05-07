@@ -1,13 +1,38 @@
-import React, { useState } from "react";
 import Sidebar from "../../components/PageComponets/Sidebar";
-import { MapContainer, TileLayer } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import lolImage from "../../assets/lol.jpg";
 import CreateEventModal from "../../components/PageComponets/ CreateEventModal";
 import "../../Styles/Events.css";
+import React, { useState, useEffect } from "react";
+import { MapContainer, TileLayer,} from "react-leaflet";
 
 const Events: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
+  
+  useEffect(() => {
+    const handleSidebarChange = () => {
+      const sidebar = document.querySelector('.sidebar');
+      if (sidebar) {
+        setSidebarExpanded(sidebar.classList.contains('expanded'));
+      }
+    };
+    
+    // Set initial state
+    handleSidebarChange();
+    
+    // Create observer to watch for class changes
+    const observer = new MutationObserver(handleSidebarChange);
+    const sidebar = document.querySelector('.sidebar');
+    
+    if (sidebar) {
+      observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+    }
+    
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   const localEvents = [
     { id: 1, name: "Mario Party", description: "Join us to compete in an epic Mario Party tournament on the Nintendo Switch", location: "Isabel's House" },
@@ -22,7 +47,7 @@ const Events: React.FC = () => {
   ];
 
   return (
-    <div className="feed-container">
+    <div className={`feed-container ${sidebarExpanded ? 'sidebar-expanded' : ''}`}>
       <Sidebar />
 
       <main className="feed-content" style={{ padding: 0 }}>
@@ -124,4 +149,3 @@ const Events: React.FC = () => {
 };
 
 export default Events;
-
