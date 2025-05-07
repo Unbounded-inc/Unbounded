@@ -145,7 +145,7 @@ We are currently using **DigitalOcean App Platform** and **Droplets** for hostin
 | Community Feed                | ✅ Completed  |
 | Forums                        | ✅ Completed |
 | Messaging (1-1 + Group Chat)  | 🚧 In Progress |
-| Map + Events Page             | ⏳ Planned  |
+| Map + Events Page             | 🚧 In Progress  |
 | Moderation Tools              | ⏳ Planned|
 | Notifications                 | 🚧 In Progress|
 | Friend System                 | 🚧 In Progress    |
