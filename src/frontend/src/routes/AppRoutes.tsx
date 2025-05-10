@@ -9,6 +9,7 @@ import PrivateRoute from "../components/Auth/PrivateRoute.tsx";
 import Friends from "../Pages/mainPages/Friends.tsx";
 import Events from "../Pages/mainPages/Events";
 import Forums from "../Pages/mainPages/Forums";
+import Settings from "../Pages/userPages/profile/Settings";
 
 const AppRoutes = () => {
   return (
@@ -64,6 +65,15 @@ const AppRoutes = () => {
   element={
     <PrivateRoute>
       <Forums />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/settings"
+  element={
+    <PrivateRoute>
+      <Settings />
     </PrivateRoute>
   }
 />
