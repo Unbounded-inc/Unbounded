@@ -5,7 +5,11 @@ import { FiBook, FiHome, FiLogOut, FiMap, FiMessageSquare, FiSettings, FiUser, F
 import ProfileIcon from "./ProfileIcon";
 import { useUser } from "../../lib/UserContext"; // ✅ Import user context
 
-function Sidebar() {
+interface SidebarProps {
+  onHoverChange?: (hovering: boolean) => void;
+}
+
+function Sidebar({ onHoverChange }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
@@ -19,8 +23,15 @@ function Sidebar() {
   return (
     <aside
       className={`sidebar ${isHovered ? "expanded" : ""}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        onHoverChange?.(true);
+      }}
+      
+      onMouseLeave={() => {
+        setIsHovered(false);
+        onHoverChange?.(false);
+      }}
     >
       {/* Profile Section */}
       <div className="profile">

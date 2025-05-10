@@ -1,19 +1,20 @@
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
-require('dotenv').config();
+require("dotenv").config();
 const http = require("http");
 const { Server } = require("socket.io");
 const pool = require("./config/db");
 const cookieParser = require("cookie-parser");
 const chatRoutes = require("./routes/chats");
-
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
-const messageRoutes = require("./routes/messages"); 
+const messageRoutes = require("./routes/messages");
+const postRoutes = require("./routes/posts");
+
+const forumRoutes = require("./routes/forums");
 
 const app = express();
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -33,16 +34,19 @@ console.log("Database connection info:", {
 
 app.use(cors({
   origin: "http://localhost:5173",
-  credentials: true
+  credentials: true,
 }));
 
 app.use(express.json());
 app.use(cookieParser());
 
+app.use("/api/forums", forumRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/chat-rooms", chatRoutes);
+app.use("/api/posts", postRoutes);
+app.use("/uploads", express.static("uploads"));
 
 const userSocketMap = {};
 
@@ -57,8 +61,8 @@ io.on("connection", (socket) => {
   socket.on("send-message", async ({ senderId, roomId, content }) => {
     try {
       const result = await pool.query(
-        `INSERT INTO messages (sender_id, room_id, content) VALUES ($1, $2, $3) RETURNING *`,
-        [senderId, roomId, content]
+          `INSERT INTO messages (sender_id, room_id, content) VALUES ($1, $2, $3) RETURNING *`,
+          [senderId, roomId, content]
       );
 
       const message = result.rows[0];
@@ -79,7 +83,6 @@ io.on("connection", (socket) => {
     }
   });
 
-
   socket.on("join-room", (roomId) => {
     socket.join(roomId);
     console.log(`Socket ${socket.id} joined room ${roomId}`);
@@ -95,8 +98,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-const postRoutes = require("./routes/posts");
-app.use("/api/posts", postRoutes);
 
 const eventRoutes = require("./routes/events");
 app.use("/api/events", eventRoutes);
@@ -107,4 +108,3 @@ const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Backend running at http://localhost:${PORT}`);
 });
-
