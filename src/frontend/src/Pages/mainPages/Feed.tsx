@@ -15,6 +15,7 @@ const Feed: React.FC = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedPost, setSelectedPost] = useState<any | null>(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -167,7 +168,7 @@ const Feed: React.FC = () => {
 
         {/* Posts */}
         {posts.map((post) => (
-          <div className="post" key={post.id}>
+          <div className="post" key={post.id} onClick={() => setSelectedPost(post)}>
             <div className="post-header">
               <img
                 src={post.profile_picture || placeholder}
@@ -205,6 +206,44 @@ const Feed: React.FC = () => {
           </div>
         ))}
       </main>
+
+      {selectedPost && (
+        <div className="tweet-modal-overlay">
+          <div className="tweet-modal-content">
+            <h2>{selectedPost.content}</h2>
+            <p className="tweet-modal-text">@{selectedPost.username}</p>
+            {selectedPost.image_url && (
+              <img
+                src={`http://localhost:5001${selectedPost.image_url}`}
+                alt="Tweet"
+                style={{ width: "100%", borderRadius: "12px", marginTop: "1rem" }}
+              />
+            )}
+
+            <div className="tweet-modal-comment-box">
+              <img
+                src={user?.profile_picture || placeholder}
+                alt="profile"
+                className="profile-pic"
+              />
+              <textarea
+                className="tweet-modal-textarea"
+                placeholder="Write a comment..."
+              />
+            </div>
+
+            <div className="tweet-modal-buttons">
+              <button
+                className="tweet-modal-button-cancel"
+                onClick={() => setSelectedPost(null)}
+              >
+                Close
+              </button>
+              <button className="tweet-modal-button-post">Comment</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <aside className="feed-right-panel">
         <div className="notification-panel">
