@@ -185,7 +185,7 @@ const Forums: React.FC = () => {
             </div>
 
             <div style={{ marginTop: "2rem" }}>
-              {comments.map((c, idx) => (
+              {[...comments].reverse().map((c, idx) => (
                 <div key={idx} style={{
                   display: "flex",
                   alignItems: "flex-start",
