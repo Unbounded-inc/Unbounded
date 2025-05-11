@@ -299,7 +299,7 @@ strong {
   
   .notification-panel {
     width: 100%;
-    height: 100;
+    height: 100%;
     background-color: #f0f0f0;
     border-radius: 16px;
     padding: 1rem;
@@ -360,7 +360,208 @@ strong {
     padding: 0;
   }
 
-
-
+  .tweet-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
   
+  .tweet-modal-content {
+    background-color: #fff;
+    padding: 2rem;
+    width: 600px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    max-height: 80vh;
+    overflow-y: auto;
+  }
   
+  .tweet-modal-text {
+    font-size: 1.05rem;
+    margin-bottom: 1rem;
+    color: #333;
+  }
+  
+  .tweet-modal-comment-box {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .tweet-modal-textarea {
+    flex: 1;
+    height: 80px;
+    padding: 0.75rem;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    resize: none;
+    font-size: 1rem;
+  }
+  
+  .tweet-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .tweet-modal-button-cancel,
+  .tweet-modal-button-post {
+    padding: 0.6rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .tweet-modal-button-cancel {
+    background-color: #ccc;
+    color: #333;
+  }
+  
+  .tweet-modal-button-post {
+    background-color: #4c569e;
+    color: white;
+  }
+  
+  .post:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    filter: brightness(1.05);
+    transition: all 0.2s ease;
+  }
+  
+  .tweet-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+  
+  .tweet-modal-content {
+    background-color: #fff;
+    padding: 2.5rem;
+    width: 640px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border-radius: 20px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+  }
+  
+  .tweet-modal-content h2 {
+    font-size: 1.85rem;
+    margin-bottom: 0.25rem;
+    color: #2d2d2d;
+  }
+  
+  .tweet-modal-text {
+    font-style: italic;
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+  
+  .tweet-modal-comment-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 1.25rem;
+  }
+  
+  .tweet-modal-comment-box img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+  
+  textarea.tweet-modal-textarea {
+    flex: 1;
+    height: 90px;
+    padding: 0.75rem 1rem;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    resize: none;
+    font-size: 1rem;
+    color: #222;
+    background-color: #fff;
+  }
+  
+  .tweet-modal-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    width: 100%;
+  }
+  
+  .tweet-modal-button-cancel,
+  .tweet-modal-button-post {
+    padding: 0.75rem 2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    min-width: 140px;
+  }
+  
+  .tweet-modal-button-cancel {
+    background-color: #ccc;
+    color: #333;
+  }
+  
+  .tweet-modal-button-post {
+    background-color: #4c569e;
+    color: white;
+  }
+  
+  .tweet-modal-button-post:hover {
+    background-color: #2f386b;
+  }
+
+.comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.comment img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
+
+.comment div {
+  background-color: #f0f0f0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 100%;
+  min-width: 200px;
+  color: #111;
+  font-size: 0.95rem;
+  word-wrap: break-word;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.comment div p {
+  margin: 4px 0 0;
+  color: #333;
+}

@@ -1,0 +1,159 @@
+
+
+.settings-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    background: linear-gradient(to bottom, #260c29, #4c569e);
+    flex-grow: 1;
+  }
+  
+  .settings-box {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    width: 600px;
+    max-width: 90%;
+    color: black;
+  }
+  
+  .settings-box h2 {
+    margin-bottom: 20px;
+    color: black;
+  }
+  
+  .settings-button {
+    width: 65%;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 8px auto;
+    display: block;
+    color: white;
+  }
+  
+  .settings-button:nth-of-type(1) {
+    background-color: rgb(76, 86, 158);
+  }
+  
+  .settings-button:nth-of-type(2) {
+    background-color: rgb(44, 36, 86);
+  }
+  
+  .settings-button:nth-of-type(3) {
+    background-color: #260c29;
+  }
+  
+  /* Modal Styles like CreateEventModal.css */
+  .settings-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .settings-modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 420px;
+  }
+  
+  .settings-modal-content h2 {
+    color: black;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+  }
+  
+  .settings-input {
+    width: 90%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 1rem;
+    background-color: white;
+    color: black;
+    margin-top: 10px;
+  }
+  
+  .settings-modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .settings-modal-buttons button:first-child {
+    background-color: #ccc;
+    color: black;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .settings-modal-buttons button:last-child {
+    background-color: #4c569e;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: light;
+  }
+  
+  .settings-readonly {
+    width: 65%;
+    margin: 30px auto 16px;
+    padding: 12px;
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 1rem;
+    color: #444;
+    display: block;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  
+  
+  .settings-button {
+    width: 65%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin: 10px auto 20px;
+    display: block;
+    color: white;
+  }
+  
+  .settings-button:nth-of-type(1) {
+    background-color: rgb(76, 86, 158);
+  }
+  
+  .settings-button:nth-of-type(2) {
+    background-color: rgb(44, 36, 86);
+  }
+  
+  .settings-button:nth-of-type(3) {
+    background-color: #260c29;
+  }
+  

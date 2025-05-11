@@ -6,17 +6,22 @@ const http = require("http");
 const { Server } = require("socket.io");
 const pool = require("./config/db");
 const cookieParser = require("cookie-parser");
+
+// Route imports
 const chatRoutes = require("./routes/chats");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const messageRoutes = require("./routes/messages");
 const postRoutes = require("./routes/posts");
-
 const forumRoutes = require("./routes/forums");
+const commentRoutes = require("./routes/comments");
+const eventRoutes = require("./routes/events");
+const friendsRoutes = require("./routes/friends");
 
 const app = express();
 const server = http.createServer(app);
 
+// WebSocket server config
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
@@ -25,6 +30,7 @@ const io = new Server(server, {
   },
 });
 
+// Debug DB connection info
 console.log("Database connection info:", {
   user: process.env.PGUSER,
   host: process.env.PGHOST,
@@ -32,22 +38,29 @@ console.log("Database connection info:", {
   port: process.env.PGPORT,
 });
 
+// Middleware
 app.use(cors({
   origin: "http://localhost:5173",
   credentials: true,
 }));
-
 app.use(express.json());
 app.use(cookieParser());
 
+// Routes
 app.use("/api/forums", forumRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/chat-rooms", chatRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/forums", forumRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/events", eventRoutes);
+app.use("/api/friends", friendsRoutes);
 app.use("/uploads", express.static("uploads"));
 
+// Socket.io setup
 const userSocketMap = {};
 
 io.on("connection", (socket) => {
@@ -70,13 +83,9 @@ io.on("connection", (socket) => {
       const userResult = await pool.query(`SELECT username FROM users WHERE id = $1`, [senderId]);
       const sender_username = userResult.rows[0]?.username || "Unknown";
 
-      const fullMessage = {
-        ...message,
-        sender_username,
-      };
+      const fullMessage = { ...message, sender_username };
 
       io.to(roomId).emit("receive-message", fullMessage);
-
       console.log(`Message broadcast to room ${roomId}`);
     } catch (err) {
       console.error("Error in send-message:", err);
@@ -99,11 +108,7 @@ io.on("connection", (socket) => {
   });
 });
 
-const eventRoutes = require("./routes/events");
-app.use("/api/events", eventRoutes);
-
-app.use("/uploads", express.static("uploads"));
-
+// Start server
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Backend running at http://localhost:${PORT}`);

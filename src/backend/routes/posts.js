@@ -40,9 +40,16 @@ router.post("/", upload.single("image"), async (req, res) => {
 router.get("/", async (req, res) => {
     try {
         const result = await db.query(`
-      SELECT posts.*, users.username, users.profile_picture
+      SELECT 
+        posts.*, 
+        users.username, 
+        users.profile_picture,
+        COALESCE(COUNT(likes.id), 0) AS like_count,
+        ARRAY_AGG(likes.user_id) FILTER (WHERE likes.user_id IS NOT NULL) AS liked_by_ids
       FROM posts
       JOIN users ON posts.user_id = users.id
+      LEFT JOIN likes ON likes.post_id = posts.id
+      GROUP BY posts.id, users.id
       ORDER BY posts.created_at DESC
     `);
 
@@ -52,5 +59,38 @@ router.get("/", async (req, res) => {
         res.status(500).json({ error: "Failed to fetch posts", details: err.message });
     }
 });
+
+
+// Like/unlike a post
+router.post("/:postId/like", async (req, res) => {
+    const { postId } = req.params;
+    const { userId } = req.body;
+
+    try {
+        // Check if like already exists
+        const existing = await db.query(
+            "SELECT * FROM likes WHERE post_id = $1 AND user_id = $2",
+            [postId, userId]
+        );
+
+        if (existing.rows.length > 0) {
+            // Unlike
+            await db.query("DELETE FROM likes WHERE post_id = $1 AND user_id = $2", [postId, userId]);
+            return res.json({ message: "Unliked" });
+        }
+
+        // Like
+        await db.query(
+            "INSERT INTO likes (post_id, user_id, created_at) VALUES ($1, $2, NOW())",
+            [postId, userId]
+        );
+
+        res.json({ message: "Liked" });
+    } catch (err) {
+        console.error("Error toggling like:", err.message);
+        res.status(500).json({ error: "Failed to toggle like", details: err.message });
+    }
+});
+
 
 module.exports = router;
