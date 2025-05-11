@@ -168,6 +168,22 @@ const Friends: React.FC = () => {
         senderId: user?.id.toString(),
         receiverId: targetId,
       });
+
+      // Get the user's data to build the sent request entry
+      const receiverRes = await axios.get(`${API_BASE}/api/users/${targetId}`);
+
+      setSentRequests((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(), // fake ID since we don’t get it from backend
+          sender_id: user!.id.toString(),
+          receiver_id: targetId,
+          senderUsername: receiverRes.data.username,
+          senderPfp: receiverRes.data.profile_picture || placeholder,
+        },
+      ]);
+
+      // Clean up search results
       setSearchResults((prev) => prev.filter((u) => u.id !== targetId));
     } catch (err) {
       console.error("Failed to send request", err);
