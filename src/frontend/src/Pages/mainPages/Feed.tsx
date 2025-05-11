@@ -22,7 +22,11 @@ const Feed: React.FC = () => {
       try {
         const res = await fetch("http://localhost:5001/api/posts");
         const data = await res.json();
-        setPosts(data.posts);
+        setPosts(data.posts.map((post: any) => ({
+          ...post,
+          likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
+          likeCount: Number(post.like_count) || 0
+        })));
       } catch (err) {
         console.error("Failed to load posts:", err);
       }
@@ -84,7 +88,11 @@ const Feed: React.FC = () => {
       if (response.ok) {
         const res = await fetch("http://localhost:5001/api/posts");
         const refreshed = await res.json();
-        setPosts(refreshed.posts);
+        setPosts(refreshed.posts.map((post: any) => ({
+          ...post,
+          likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
+          likeCount: Number(post.like_count) || 0
+        })));
         setPostText("");
         setPreviewUrl(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -93,6 +101,38 @@ const Feed: React.FC = () => {
       }
     } catch (err) {
       console.error("Upload error:", err);
+    }
+  };
+
+  const toggleLike = async (postId: string) => {
+    if (!user) return;
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/posts/${postId}/like`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      if (res.ok) {
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.id === postId
+              ? {
+                ...post,
+                likedByCurrentUser: !post.likedByCurrentUser,
+                likeCount: post.likedByCurrentUser
+                  ? post.likeCount - 1
+                  : post.likeCount + 1,
+              }
+              : post
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Failed to toggle like:", err);
     }
   };
 
@@ -168,7 +208,7 @@ const Feed: React.FC = () => {
 
         {/* Posts */}
         {posts.map((post) => (
-          <div className="post" key={post.id} onClick={() => setSelectedPost(post)}>
+          <div className="post" key={post.id}>
             <div className="post-header">
               <img
                 src={post.profile_picture || placeholder}
@@ -193,12 +233,19 @@ const Feed: React.FC = () => {
             )}
 
             <div className="post-actions">
-              <button>
-                <img src={heart} alt="like icon" className="action-icon" /> Like
+              <button onClick={() => toggleLike(post.id)}>
+                <img
+                  src={heart}
+                  alt="like icon"
+                  className={`action-icon ${post.likedByCurrentUser ? "liked" : ""}`}
+                />
+                {post.likeCount} Like{post.likeCount !== 1 ? "s" : ""}
               </button>
-              <button>
+
+              <button onClick={() => setSelectedPost(post)}>
                 <img src={comment} alt="comment icon" className="action-icon" /> Comment
               </button>
+
               <button>
                 <img src={share} alt="share icon" className="action-icon" /> Share
               </button>
