@@ -6,13 +6,15 @@ const http = require("http");
 const { Server } = require("socket.io");
 const pool = require("./config/db");
 const cookieParser = require("cookie-parser");
+
 const chatRoutes = require("./routes/chats");
 const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/users");
 const messageRoutes = require("./routes/messages");
 const postRoutes = require("./routes/posts");
-
 const forumRoutes = require("./routes/forums");
+const commentRoutes = require("./routes/comments");
+const eventRoutes = require("./routes/events");
 
 const app = express();
 const server = http.createServer(app);
@@ -40,12 +42,14 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 
-app.use("/api/forums", forumRoutes);
 app.use("/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/chat-rooms", chatRoutes);
 app.use("/api/posts", postRoutes);
+app.use("/api/forums", forumRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/events", eventRoutes);
 app.use("/uploads", express.static("uploads"));
 
 const userSocketMap = {};
@@ -70,13 +74,9 @@ io.on("connection", (socket) => {
       const userResult = await pool.query(`SELECT username FROM users WHERE id = $1`, [senderId]);
       const sender_username = userResult.rows[0]?.username || "Unknown";
 
-      const fullMessage = {
-        ...message,
-        sender_username,
-      };
+      const fullMessage = { ...message, sender_username };
 
       io.to(roomId).emit("receive-message", fullMessage);
-
       console.log(`Message broadcast to room ${roomId}`);
     } catch (err) {
       console.error("Error in send-message:", err);
@@ -98,11 +98,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-
-const eventRoutes = require("./routes/events");
-app.use("/api/events", eventRoutes);
-
-app.use("/uploads", express.static("uploads"));
 
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
