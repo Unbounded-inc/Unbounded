@@ -113,4 +113,18 @@ router.delete('/:requestId', async (req, res) => {
     }
 });
 
+router.get("/sent/:userId", async (req, res) => {
+    const { userId } = req.params;
+    try {
+        const result = await db.query(
+            `SELECT * FROM friend_requests WHERE sender_id = $1 AND status = 'pending'`,
+            [userId]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error("Error fetching sent requests:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
 module.exports = router;
