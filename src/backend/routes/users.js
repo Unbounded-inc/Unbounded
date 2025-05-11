@@ -5,7 +5,7 @@ const bcrypt = require("bcryptjs");
 const axios = require("axios");
 
 // lists users
-router.get("/users", async (req, res) => {
+router.get("/", async (req, res) => {
     const { page = 1, limit = 10, search = "" } = req.query;
     const offset = (page - 1) * limit;
 
@@ -19,7 +19,7 @@ router.get("/users", async (req, res) => {
         `;
         const result = await db.query(query, [`%${search}%`, limit, offset]);
 
-        res.json({ message: "Users retrieved", users: result.rows });
+        res.json(result.rows);
     } catch (err) {
         console.error("Failed to fetch users:", err.message);
         res.status(500).json({ error: "Failed to retrieve users", details: err.message });
