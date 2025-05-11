@@ -4,50 +4,89 @@ import lolImage from "../../assets/lol.jpg";
 import CreateEventModal from "../../components/PageComponets/ CreateEventModal";
 import "../../Styles/Events.css";
 import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer,} from "react-leaflet";
+import { MapContainer, TileLayer } from "react-leaflet";
 
 const Events: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
-  
+  const [yourEvents, setYourEvents] = useState<any[]>([]);
+
+  const fetchYourEvents = async () => {
+    const userId = localStorage.getItem("user_id");
+    if (!userId) return;
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/events/user/${userId}`);
+      const data = await res.json();
+      setYourEvents(data);
+    } catch (err) {
+      console.error("Failed to fetch events:", err);
+    }
+  };
+
   useEffect(() => {
     const handleSidebarChange = () => {
-      const sidebar = document.querySelector('.sidebar');
+      const sidebar = document.querySelector(".sidebar");
       if (sidebar) {
-        setSidebarExpanded(sidebar.classList.contains('expanded'));
+        setSidebarExpanded(sidebar.classList.contains("expanded"));
       }
     };
-    
-    // Set initial state
+
     handleSidebarChange();
-    
-    // Create observer to watch for class changes
+
     const observer = new MutationObserver(handleSidebarChange);
-    const sidebar = document.querySelector('.sidebar');
-    
+    const sidebar = document.querySelector(".sidebar");
+
     if (sidebar) {
-      observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+      observer.observe(sidebar, { attributes: true, attributeFilter: ["class"] });
     }
-    
+
     return () => {
       observer.disconnect();
     };
   }, []);
 
-  const localEvents = [
-    { id: 1, name: "Mario Party", description: "Join us to compete in an epic Mario Party tournament on the Nintendo Switch", location: "Isabel's House" },
-    { id: 2, name: "Pancake Day", description: "IHOP free stack of pancakes to celebrate National Pancake Day", location: "IHOP in the Bronx" },
-    { id: 3, name: "Taste of Dominican Republic", description: "Food tasting event showcasing authentic regional Dominican cuisine.", location: "Central Park" },
-  ];
+  useEffect(() => {
+    fetchYourEvents();
+  }, []);
 
-  const yourEvents = [
-    { id: 4, name: "Community Art Fair", description: "A local art fair showcasing artists from the community.", location: "Community Center" },
-    { id: 5, name: "Neighborhood Cleanup", description: "Join us for a day of cleaning and beautifying the neighborhood.", location: "Main Street" },
-    { id: 6, name: "Charity Fun Run", description: "A 5K fun run to raise funds for local charities.", location: "City Park" },
+  const handleDelete = async (eventId: string) => {
+  const confirmed = window.confirm("Are you sure you want to delete this event?");
+  if (!confirmed) return;
+
+  try {
+    await fetch(`http://localhost:5001/api/events/${eventId}`, {
+      method: "DELETE",
+    });
+    await fetchYourEvents(); // Re-fetch after deletion
+  } catch (err) {
+    console.error("Failed to delete event:", err);
+  }
+};
+
+  const localEvents = [
+    {
+      id: 1,
+      name: "Mario Party",
+      description: "Join us to compete in an epic Mario Party tournament on the Nintendo Switch",
+      location: "Isabel's House",
+    },
+    {
+      id: 2,
+      name: "Pancake Day",
+      description: "IHOP free stack of pancakes to celebrate National Pancake Day",
+      location: "IHOP in the Bronx",
+    },
+    {
+      id: 3,
+      name: "Taste of Dominican Republic",
+      description: "Food tasting event showcasing authentic regional Dominican cuisine.",
+      location: "Central Park",
+    },
   ];
 
   return (
-    <div className={`feed-container ${sidebarExpanded ? 'sidebar-expanded' : ''}`}>
+    <div className={`feed-container ${sidebarExpanded ? "sidebar-expanded" : ""}`}>
       <Sidebar />
 
       <main className="feed-content" style={{ padding: 0 }}>
@@ -60,11 +99,17 @@ const Events: React.FC = () => {
               placeholder="Search for a specific event..."
               className="friends-search-input"
             />
-            <button className="add-friend-btn" onClick={() => setShowModal(true)}>Create</button>
+            <button className="add-friend-btn" onClick={() => setShowModal(true)}>
+              Create
+            </button>
           </div>
 
           <div style={{ width: "100%", height: "400px", margin: "2rem 0" }}>
-            <MapContainer center={[40.77, -73.95] as [number, number]} zoom={12} style={{ height: "100%", width: "100%" }}>
+            <MapContainer
+              center={[40.77, -73.95] as [number, number]}
+              zoom={12}
+              style={{ height: "100%", width: "100%" }}
+            >
               <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap contributors"
@@ -73,6 +118,7 @@ const Events: React.FC = () => {
           </div>
 
           <div style={{ display: "flex", gap: "6rem" }}>
+            {/* Local Events */}
             <div style={{ flex: 1, maxWidth: "400px" }}>
               <h3 className="section-subtitle">Local Events:</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -90,7 +136,12 @@ const Events: React.FC = () => {
                     <img
                       src={lolImage}
                       alt="Event"
-                      style={{ width: "90%", height: "100px", objectFit: "cover", borderRadius: "8px 8px 0 0" }}
+                      style={{
+                        width: "90%",
+                        height: "100px",
+                        objectFit: "cover",
+                        borderRadius: "8px 8px 0 0",
+                      }}
                     />
                     <div className="friend-text" style={{ width: "90%", textAlign: "center" }}>
                       <strong>{event.name}</strong>
@@ -102,6 +153,7 @@ const Events: React.FC = () => {
               </div>
             </div>
 
+            {/* Your Events */}
             <div style={{ flex: 1, maxWidth: "400px" }}>
               <h3 className="section-subtitle">Your Events:</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -110,19 +162,48 @@ const Events: React.FC = () => {
                     key={event.id}
                     className="friend-entry"
                     style={{
+                      position: "relative",
                       flexDirection: "column",
                       alignItems: "center",
                       width: "100%",
                       border: "5px solid rgb(44, 36, 86)",
+                      borderRadius: "8px",
                     }}
                   >
+                    {/* Delete button in top-right corner of the card */}
+                    <button
+                      onClick={() => handleDelete(event.id)}
+                      style={{
+                        position: "absolute",
+                        top: "-5px",
+                        right: "-200px",
+                        background: "transparent",
+                        border: "none",
+                        fontSize: "1.2rem",
+                        cursor: "pointer",
+                        color: "#000",
+                        zIndex: 10,
+                        lineHeight: "",
+                        padding: "0",
+
+                      }}
+                      aria-label="Delete event"
+                    >
+                      ❌
+                    </button>
+
                     <img
                       src={lolImage}
                       alt="Event"
-                      style={{ width: "90%", height: "100px", objectFit: "cover", borderRadius: "8px 8px 0 0" }}
+                      style={{
+                        width: "90%",
+                        height: "100px",
+                        objectFit: "cover",
+                        borderRadius: "8px 8px 0 0",
+                      }}
                     />
                     <div className="friend-text" style={{ width: "90%", textAlign: "center" }}>
-                      <strong>{event.name}</strong>
+                      <strong>{event.title}</strong>
                       <p>{event.description}</p>
                       <p style={{ fontStyle: "italic", color: "#777" }}>{event.location}</p>
                     </div>
@@ -143,7 +224,11 @@ const Events: React.FC = () => {
         </div>
       </aside>
 
-      <CreateEventModal showModal={showModal} setShowModal={setShowModal} />
+      <CreateEventModal
+        showModal={showModal}
+        setShowModal={setShowModal}
+        onEventCreated={(newEvent) => setYourEvents((prev) => [...prev, newEvent])}
+      />
     </div>
   );
 };

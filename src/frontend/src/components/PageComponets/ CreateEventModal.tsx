@@ -4,9 +4,10 @@ import "../../Styles/CreateEventModal.css";
 interface CreateEventModalProps {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
+  onEventCreated?: (event: any) => void;
 }
 
-const CreateEventModal: React.FC<CreateEventModalProps> = ({ showModal, setShowModal }) => {
+const CreateEventModal: React.FC<CreateEventModalProps> = ({ showModal, setShowModal, onEventCreated }) => {
   const [image, setImage] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -51,6 +52,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ showModal, setShowM
   
       if (response.ok) {
         console.log("Event created:", result.event);
+
+        if (onEventCreated) {
+          onEventCreated(result.event); //triggers event creation updates parent
+        }
+        
         setShowModal(false);
         setName("");
         setDescription("");
