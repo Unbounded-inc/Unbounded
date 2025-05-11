@@ -27,7 +27,6 @@ const Feed: React.FC = () => {
           likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
           likeCount: Number(post.like_count) || 0
         })));
-
       } catch (err) {
         console.error("Failed to load posts:", err);
       }
@@ -89,7 +88,11 @@ const Feed: React.FC = () => {
       if (response.ok) {
         const res = await fetch("http://localhost:5001/api/posts");
         const refreshed = await res.json();
-        setPosts(refreshed.posts);
+        setPosts(refreshed.posts.map((post: any) => ({
+          ...post,
+          likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
+          likeCount: Number(post.like_count) || 0
+        })));
         setPostText("");
         setPreviewUrl(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -132,7 +135,6 @@ const Feed: React.FC = () => {
       console.error("Failed to toggle like:", err);
     }
   };
-
 
   return (
     <div className="feed-container">
@@ -206,7 +208,7 @@ const Feed: React.FC = () => {
 
         {/* Posts */}
         {posts.map((post) => (
-          <div className="post" key={post.id} onClick={() => setSelectedPost(post)}>
+          <div className="post" key={post.id}>
             <div className="post-header">
               <img
                 src={post.profile_picture || placeholder}
@@ -240,9 +242,10 @@ const Feed: React.FC = () => {
                 {post.likeCount} Like{post.likeCount !== 1 ? "s" : ""}
               </button>
 
-              <button>
-                <img src={comment} alt="comment icon" className="action-icon"/> Comment
+              <button onClick={() => setSelectedPost(post)}>
+                <img src={comment} alt="comment icon" className="action-icon" /> Comment
               </button>
+
               <button>
                 <img src={share} alt="share icon" className="action-icon" /> Share
               </button>
