@@ -1,0 +1,101 @@
+.notification-button {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 48px;
+    height: 48px;
+    background: white;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.notification-popup {
+    position: fixed;
+    top: 70px;
+    right: 1rem;
+    width: 280px;
+    background: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    padding: 1rem;
+    z-index: 999;
+}
+
+.notification-header {
+    font-weight: bold;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+.notification-popup ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.notification-popup li {
+    background: #f1f1f1;
+    margin-bottom: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    color: #222;
+}
+
+.notification-popup li p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #222;
+}
+
+.notification-popup li small {
+    display: block;
+    margin-top: 0.25rem;
+    font-size: 0.75rem;
+    color: #555;
+}
+
+@keyframes shake {
+    0% { transform: rotate(0); }
+    25% { transform: rotate(-15deg); }
+    50% { transform: rotate(15deg); }
+    75% { transform: rotate(-10deg); }
+    100% { transform: rotate(0); }
+}
+
+.shake {
+    animation: shake 0.6s ease-in-out;
+}
+
+.notification-list {
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.notification-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notification-list::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 3px;
+}
+
+

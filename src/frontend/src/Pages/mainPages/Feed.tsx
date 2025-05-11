@@ -8,6 +8,7 @@ import heart from "../../assets/like.png";
 import comment from "../../assets/comments.png";
 import share from "../../assets/shares.png";
 import PostTextBox from "../../components/PageComponets/PostTextBox";
+import NotificationSidebar from "../../components/PageComponets/NotificationSidebar.tsx";
 
 const Feed: React.FC = () => {
   const { user } = useUser();
@@ -179,6 +180,7 @@ const Feed: React.FC = () => {
   return (
     <div className="feed-container">
       <Sidebar />
+      <NotificationSidebar/>
 
       <main className="feed-content">
         <div className="feed-header">
@@ -325,14 +327,14 @@ const Feed: React.FC = () => {
         </div>
       )}
 
-      <aside className="feed-right-panel">
-        <div className="notification-panel">
-          <h3>Notifications</h3>
-          <p className="notification-item">Manny liked your post.</p>
-          <p className="notification-item">Isabel commented on your post.</p>
-          <p className="notification-item">New message from Calvin.</p>
-        </div>
-      </aside>
+      {/*<aside className="feed-right-panel">*/}
+      {/*  <div className="notification-panel">*/}
+      {/*    <h3>Notifications</h3>*/}
+      {/*    <p className="notification-item">Manny liked your post.</p>*/}
+      {/*    <p className="notification-item">Isabel commented on your post.</p>*/}
+      {/*    <p className="notification-item">New message from Calvin.</p>*/}
+      {/*  </div>*/}
+      {/*</aside>*/}
     </div>
   );
 };
