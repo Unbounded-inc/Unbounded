@@ -22,7 +22,12 @@ const Feed: React.FC = () => {
       try {
         const res = await fetch("http://localhost:5001/api/posts");
         const data = await res.json();
-        setPosts(data.posts);
+        setPosts(data.posts.map((post: any) => ({
+          ...post,
+          likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
+          likeCount: Number(post.like_count) || 0
+        })));
+
       } catch (err) {
         console.error("Failed to load posts:", err);
       }
@@ -95,6 +100,39 @@ const Feed: React.FC = () => {
       console.error("Upload error:", err);
     }
   };
+
+  const toggleLike = async (postId: string) => {
+    if (!user) return;
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/posts/${postId}/like`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      if (res.ok) {
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post.id === postId
+              ? {
+                ...post,
+                likedByCurrentUser: !post.likedByCurrentUser,
+                likeCount: post.likedByCurrentUser
+                  ? post.likeCount - 1
+                  : post.likeCount + 1,
+              }
+              : post
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Failed to toggle like:", err);
+    }
+  };
+
 
   return (
     <div className="feed-container">
@@ -193,11 +231,17 @@ const Feed: React.FC = () => {
             )}
 
             <div className="post-actions">
-              <button>
-                <img src={heart} alt="like icon" className="action-icon" /> Like
+              <button onClick={() => toggleLike(post.id)}>
+                <img
+                  src={heart}
+                  alt="like icon"
+                  className={`action-icon ${post.likedByCurrentUser ? "liked" : ""}`}
+                />
+                {post.likeCount} Like{post.likeCount !== 1 ? "s" : ""}
               </button>
+
               <button>
-                <img src={comment} alt="comment icon" className="action-icon" /> Comment
+                <img src={comment} alt="comment icon" className="action-icon"/> Comment
               </button>
               <button>
                 <img src={share} alt="share icon" className="action-icon" /> Share
