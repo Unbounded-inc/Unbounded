@@ -34,20 +34,17 @@ const Friends: React.FC = () => {
 
   const [friends, setFriends] = useState<Friend[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
+  const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
 
   useEffect(() => {
     if (!user?.id) return;
-    console.log("Logged in user ID:", user.id.toString());
 
     const fetchRequests = async () => {
       try {
         const res = await axios.get(`${API_BASE}/api/friends/requests/${user.id.toString()}`);
-        if (!Array.isArray(res.data)) {
-          console.error("Expected array for requests but got:", res.data);
-          return;
-        }
+        if (!Array.isArray(res.data)) return;
 
         const enriched = await Promise.all(
           res.data.map(async (req: FriendRequest) => {
@@ -59,27 +56,41 @@ const Friends: React.FC = () => {
             };
           })
         );
-        console.log("Enriched requests:", enriched);
         setRequests(enriched);
       } catch (err) {
         console.error("Failed to fetch requests", err);
       }
     };
 
+    const fetchSentRequests = async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/api/friends/sent/${user.id.toString()}`);
+        const enriched = await Promise.all(
+          res.data.map(async (req: FriendRequest) => {
+            const receiverRes = await axios.get(`${API_BASE}/api/users/${req.receiver_id}`);
+            return {
+              ...req,
+              senderUsername: receiverRes.data.username,
+              senderPfp: receiverRes.data.profile_picture || placeholder,
+            };
+          })
+        );
+        setSentRequests(enriched);
+      } catch (err) {
+        console.error("Failed to fetch sent requests", err);
+      }
+    };
+
     const fetchFriends = async () => {
       try {
         const res = await axios.get(`${API_BASE}/api/friends/${user.id.toString()}`);
-        if (!Array.isArray(res.data)) {
-          console.error("Expected array for friends but got:", res.data);
-          return;
-        }
+        if (!Array.isArray(res.data)) return;
 
         const enriched = await Promise.all(
           res.data.map(async (relation: Friend) => {
-            const otherId =
-              relation.sender_id === user.id.toString()
-                ? relation.receiver_id
-                : relation.sender_id;
+            const otherId = relation.sender_id === user.id.toString()
+              ? relation.receiver_id
+              : relation.sender_id;
             const otherRes = await axios.get(`${API_BASE}/api/users/${otherId}`);
             return {
               ...relation,
@@ -88,7 +99,6 @@ const Friends: React.FC = () => {
             };
           })
         );
-        console.log("Enriched friends:", enriched);
         setFriends(enriched);
       } catch (err) {
         console.error("Failed to fetch friends", err);
@@ -97,11 +107,11 @@ const Friends: React.FC = () => {
 
     void fetchRequests();
     void fetchFriends();
+    void fetchSentRequests();
   }, [user?.id]);
 
   const handleAccept = async (requestId: string) => {
     try {
-      console.log("Accepting request:", requestId);
       await axios.post(`${API_BASE}/api/friends/accept/${requestId}`);
       setRequests((prev) => prev.filter((r) => r.id !== requestId));
     } catch (err) {
@@ -111,7 +121,6 @@ const Friends: React.FC = () => {
 
   const handleDelete = async (requestId: string) => {
     try {
-      console.log("Deleting request:", requestId);
       await axios.delete(`${API_BASE}/api/friends/${requestId}`);
       setRequests((prev) => prev.filter((r) => r.id !== requestId));
     } catch (err) {
@@ -119,9 +128,17 @@ const Friends: React.FC = () => {
     }
   };
 
+  const handleCancelRequest = async (requestId: string) => {
+    try {
+      await axios.delete(`${API_BASE}/api/friends/${requestId}`);
+      setSentRequests((prev) => prev.filter((r) => r.id !== requestId));
+    } catch (err) {
+      console.error("Failed to cancel request", err);
+    }
+  };
+
   const handleRemoveFriend = async (friendId: string) => {
     try {
-      console.log("Removing friend:", friendId);
       await axios.delete(`${API_BASE}/api/friends/${friendId}`);
       setFriends((prev) => prev.filter((f) => f.id !== friendId));
     } catch (err) {
@@ -131,17 +148,14 @@ const Friends: React.FC = () => {
 
   const handleSearch = async () => {
     try {
-      console.log("Searching for:", searchQuery);
       const res = await axios.get(`${API_BASE}/api/users?search=${searchQuery}`);
       const filtered = res.data.filter(
         (u: User) =>
           u.id.toString() !== user?.id.toString() &&
-          !friends.some(
-            (f) =>
-              f.sender_id === u.id || f.receiver_id === u.id
+          !friends.some(f =>
+            f.sender_id === u.id.toString() || f.receiver_id === u.id.toString()
           )
       );
-      console.log("Search results:", filtered);
       setSearchResults(filtered);
     } catch (err) {
       console.error("Search failed", err);
@@ -150,7 +164,6 @@ const Friends: React.FC = () => {
 
   const handleSendRequest = async (targetId: string) => {
     try {
-      console.log("Sending friend request to:", targetId);
       await axios.post(`${API_BASE}/api/friends/request`, {
         senderId: user?.id.toString(),
         receiverId: targetId,
@@ -189,11 +202,7 @@ const Friends: React.FC = () => {
             ) : (
               friends.map((friend) => (
                 <div key={friend.id} className="friend-entry">
-                  <img
-                    src={friend.friendPfp}
-                    alt="pfp"
-                    className="friend-pfp"
-                  />
+                  <img src={friend.friendPfp} alt="pfp" className="friend-pfp" />
                   <div className="friend-text">
                     <strong>{friend.friendUsername}</strong>
                     <p>Friendship ID: {friend.id}</p>
@@ -219,27 +228,39 @@ const Friends: React.FC = () => {
             ) : (
               requests.map((req) => (
                 <div key={req.id} className="friend-entry">
-                  <img
-                    src={req.senderPfp}
-                    alt="pfp"
-                    className="friend-pfp"
-                  />
+                  <img src={req.senderPfp} alt="pfp" className="friend-pfp" />
                   <div className="friend-text">
                     <strong>{req.senderUsername}</strong>
                     <p>has requested to be your friend.</p>
                   </div>
                   <div className="friend-actions">
-                    <button
-                      className="accept-btn"
-                      onClick={() => handleAccept(req.id)}
-                    >
+                    <button className="accept-btn" onClick={() => handleAccept(req.id)}>
                       Accept
                     </button>
-                    <button
-                      className="remove-btn"
-                      onClick={() => handleDelete(req.id)}
-                    >
+                    <button className="remove-btn" onClick={() => handleDelete(req.id)}>
                       Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="requests-section">
+            <h3 className="section-subtitle">Sent Requests:</h3>
+            {sentRequests.length === 0 ? (
+              <p>No sent requests.</p>
+            ) : (
+              sentRequests.map((req) => (
+                <div key={req.id} className="friend-entry">
+                  <img src={req.senderPfp} alt="pfp" className="friend-pfp" />
+                  <div className="friend-text">
+                    <strong>{req.senderUsername}</strong>
+                    <p>Friend request sent.</p>
+                  </div>
+                  <div className="friend-actions">
+                    <button className="remove-btn" onClick={() => handleCancelRequest(req.id)}>
+                      Cancel Request
                     </button>
                   </div>
                 </div>
@@ -252,19 +273,12 @@ const Friends: React.FC = () => {
               <h3 className="section-subtitle">Search Results:</h3>
               {searchResults.map((u) => (
                 <div key={u.id} className="friend-entry">
-                  <img
-                    src={u.profile_picture || placeholder}
-                    alt="pfp"
-                    className="friend-pfp"
-                  />
+                  <img src={u.profile_picture || placeholder} alt="pfp" className="friend-pfp" />
                   <div className="friend-text">
                     <strong>{u.username}</strong>
                   </div>
                   <div className="friend-actions">
-                    <button
-                      className="accept-btn"
-                      onClick={() => handleSendRequest(u.id)}
-                    >
+                    <button className="accept-btn" onClick={() => handleSendRequest(u.id)}>
                       Add Friend
                     </button>
                   </div>
