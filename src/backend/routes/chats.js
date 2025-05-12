@@ -105,7 +105,7 @@ router.get("/:userId", async (req, res) => {
         cr.name AS group_name,
         cr.is_group,
         u.id AS user_id,
-        u.username,
+        u.username
       FROM chat_room_members crm
       JOIN chat_rooms cr ON crm.room_id = cr.id
       JOIN users u ON crm.user_id = u.id
@@ -129,7 +129,7 @@ router.get("/:userId", async (req, res) => {
 
       grouped[roomId].users.push({
         id: row.user_id,
-        username: row.username,
+        username: row.username
         //profilePic: row.profile_pic,
       });
     }
