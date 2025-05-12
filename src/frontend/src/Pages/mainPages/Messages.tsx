@@ -3,6 +3,7 @@ import "../../Styles/Feed.css";
 import "../../Styles/Messages.css";
 import Sidebar from "../../components/PageComponets/Sidebar";
 import MessageInput from "../../components/PageComponets/MessageInput";
+import CreateGroupModal from "../../components/PageComponets/CreateGroupModal";
 import placeholder from "../../assets/placeholder.png";
 import io from "socket.io-client";
 
@@ -14,7 +15,10 @@ interface User {
 
 interface ChatPreview {
   roomId: string;
-  user: User;
+  isGroup?: boolean;
+  groupName?: string;
+  user?: User;
+  users?: User[];
 }
 
 interface Message {
@@ -34,6 +38,7 @@ const Messages: React.FC = () => {
   const [isNewChat, setIsNewChat] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [showGroupModal, setShowGroupModal] = useState(false);
 
   const selectedChat = chats.find((c) => c.roomId === selectedRoomId);
 
@@ -73,22 +78,14 @@ const Messages: React.FC = () => {
       .then(setMessages);
   }, [selectedRoomId]);
 
-
-  useEffect(() => {
-    console.log("📨 startNewChat is defined");
-  }, []);
-
   useEffect(() => {
     if (!socket) return;
 
     const handleReceiveMessage = (message: any) => {
-      console.log("📩 New message received:", message);
-
       setMessages((prev) => [...prev, message]);
     };
 
     socket.on("receive-message", handleReceiveMessage);
-
     return () => {
       socket.off("receive-message", handleReceiveMessage);
     };
@@ -97,68 +94,51 @@ const Messages: React.FC = () => {
   useEffect(() => {
     if (socket && selectedRoomId) {
       socket.emit("join-room", selectedRoomId);
-      console.log("🔌 Joined room:", selectedRoomId);
     }
   }, [socket, selectedRoomId]);
 
+  const startNewChat = async () => {
+    try {
+      if (!newUsername || !currentUser) return;
 
-const startNewChat = async () => {
-  try {
-    if (!newUsername || !currentUser) {
-      console.warn("⚠️ Either newUsername or currentUser is missing. Not making request.");
-      return;
+      const userRes = await fetch(
+        `http://localhost:5001/api/users/username/${newUsername}`
+      );
+      if (!userRes.ok) throw new Error("User not found");
+
+      const receiver = await userRes.json();
+
+      const roomRes = await fetch("http://localhost:5001/api/chat-rooms/one-on-one", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userAId: currentUser.id, userBId: receiver.id }),
+      });
+
+      if (!roomRes.ok) return;
+
+      const data = await roomRes.json();
+      const roomId = data.roomId || data.room_id || data.id;
+
+      if (!roomId) return;
+
+      setIsNewChat(false);
+      setSelectedRoomId(roomId);
+      setNewUsername("");
+
+      if (!chats.find((c) => c.roomId === roomId)) {
+        setChats((prev) => [...prev, { roomId, user: receiver }]);
+      }
+    } catch (err) {
+      console.error("Error starting chat:", err);
+      alert("Failed to start chat. Check the username.");
     }
-
-    const userRes = await fetch(`http://localhost:5001/api/users/username/${newUsername}`);
-    if (!userRes.ok) throw new Error("User not found");
-
-    const receiver = await userRes.json();
-
-    const roomRes = await fetch("http://localhost:5001/api/chat-rooms/one-on-one", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userAId: currentUser.id,
-        userBId: receiver.id,
-      }),
-    });
-
-    if (!roomRes.ok) {
-      const text = await roomRes.text();
-      console.error("❌ Backend returned non-OK status:", roomRes.status, text);
-      return;
-    }
-
-    const data = await roomRes.json();
-    const roomId = data.roomId || data.room_id || data.id;
-
-    if (!roomId) {
-      console.error("❌ Room ID is missing from backend response");
-      return;
-    }
-
-    setIsNewChat(false);
-    setSelectedRoomId(roomId);
-    setNewUsername("");
-
-    if (!chats.find((c) => c.roomId === roomId)) {
-      setChats((prev) => [...prev, { roomId, user: receiver }]);
-    }
-
-    console.log("✅ Room created:", roomId);
-  } catch (err) {
-    console.error("Error starting chat:", err);
-    alert("Failed to start chat. Check the username.");
-  }
-};
-
+  };
 
   return (
     <div className="feed-container">
       <Sidebar />
 
       <main className="feed-content" style={{ display: "flex", padding: 0 }}>
-        
         <div className="messages-sidebar">
           <h2 className="feed-header" style={{ fontSize: "32px", marginBottom: "0.5rem" }}>
             Messages
@@ -168,7 +148,16 @@ const startNewChat = async () => {
             <span className="plus">+</span> New Chat
           </button>
 
-
+          <button
+            className="new-chat-btn"
+            onClick={() => {
+              setSelectedRoomId(null);
+              setIsNewChat(false);
+              setShowGroupModal(true);
+            }}
+          >
+            <span className="plus">+</span> New Group Chat
+          </button>
 
           {chats.map((chat) => (
             <div
@@ -178,17 +167,22 @@ const startNewChat = async () => {
                 setIsNewChat(false);
               }}
               className="chat-preview"
-              style={{
-                backgroundColor: selectedRoomId === chat.roomId && !isNewChat ? "#ddd" : "#e4e4e4",
-              }}
+              style={{ backgroundColor: selectedRoomId === chat.roomId && !isNewChat ? "#ddd" : "#e4e4e4" }}
             >
-              <div className="post-header">
-                <img src={chat.user.profilePic || placeholder} alt="Profile" className="profile-pic" />
+              {chat.isGroup ? (
                 <div className="post-user">
-                  <strong>{chat.user.username}</strong>
-                  <p>@{chat.user.username}</p>
+                  <strong>{chat.groupName || "Group Chat"}</strong>
+                  <p>{chat.users?.map((u) => u?.username || "Unknown").join(", ")}</p>
                 </div>
-              </div>
+              ) : (
+                <div className="post-header">
+                  <img src={chat.user?.profilePic || placeholder} alt="Profile" className="profile-pic" />
+                  <div className="post-user">
+                    <strong>{chat.user?.username || "Unknown"}</strong>
+                    <p>@{chat.user?.username || "unknown"}</p>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -221,19 +215,22 @@ const startNewChat = async () => {
                   Start Chat
                 </button>
               </div>
-
               <div className="chat-messages" />
             </>
           ) : (
             <>
               <div className="chat-header">
-                <div className="post-header">
-                  <img src={selectedChat?.user.profilePic || placeholder} alt="Profile" className="profile-pic" />
-                  <div className="post-user">
-                    <strong>{selectedChat?.user.username}</strong>
-                    <p>@{selectedChat?.user.username}</p>
+                {selectedChat?.user ? (
+                  <div className="post-header">
+                    <img src={selectedChat.user?.profilePic || placeholder} alt="Profile" className="profile-pic" />
+                    <div className="post-user">
+                      <strong>{selectedChat.user?.username}</strong>
+                      <p>@{selectedChat.user?.username}</p>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <strong style={{ fontSize: "1.5rem", marginLeft: "1rem" }}>Group Chat</strong>
+                )}
                 <div className="chat-close-wrapper">
                   <button className="close-btn" onClick={handleCloseChat}>✕</button>
                 </div>
@@ -251,12 +248,7 @@ const startNewChat = async () => {
           )}
 
           {currentUser && selectedRoomId && !isNewChat && (
-            <MessageInput
-              socket={socket}
-              senderId={currentUser.id}
-              roomId={selectedRoomId}
-            />
-
+            <MessageInput socket={socket} senderId={currentUser.id} roomId={selectedRoomId} />
           )}
         </div>
       </main>
@@ -269,6 +261,23 @@ const startNewChat = async () => {
           <p className="notification-item">New message from Calvin.</p>
         </div>
       </aside>
+
+      {showGroupModal && currentUser && (
+        <CreateGroupModal
+          onClose={() => setShowGroupModal(false)}
+          onGroupCreated={(roomId) => {
+            fetch(`http://localhost:5001/api/chat-rooms/${currentUser.id}`)
+              .then((res) => res.json())
+              .then((updatedChats) => {
+                setChats(updatedChats);
+                setSelectedRoomId(roomId);
+                setShowGroupModal(false);
+              });
+          }}
+
+          currentUserId={currentUser.id}
+        />
+      )}
     </div>
   );
 };

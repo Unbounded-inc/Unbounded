@@ -1,112 +1,131 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import "../../Styles/Messages.css";
 
-function CreateGroupModal({ onClose, onGroupCreated, currentUserId }) {
+interface User {
+  id: string;
+  username: string;
+}
+
+interface Props {
+  onClose: () => void;
+  onGroupCreated: (roomId: string) => void;
+  currentUserId: string;
+}
+
+const CreateGroupModal: React.FC<Props> = ({
+  onClose,
+  onGroupCreated,
+  currentUserId,
+}) => {
   const [groupName, setGroupName] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [userList, setUserList] = useState([]);
-  const [selectedIds, setSelectedIds] = useState([]);
+  const [usernameInput, setUsernameInput] = useState("");
+  const [userSuggestions, setUserSuggestions] = useState<User[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users`, { credentials: "include" })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!Array.isArray(data)) {
-          console.error("Unexpected users API response:", data);
-          return;
-        }
-        setUserList(data.filter((u) => u.id !== currentUserId));
-      });
-  }, [currentUserId]);
-
-  const filteredUsers = userList.filter((u) =>
-    u.username.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const toggleUser = (id) => {
-    console.log("Selected IDs:", selectedIds);
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-
-  async function handleCreate(e) {
-    e.preventDefault();
-
-    const memberIds = [...selectedIds];
-    if (!memberIds.includes(currentUserId)) {
-      memberIds.push(currentUserId);
+    if (usernameInput.length === 0) {
+      setUserSuggestions([]);
+      return;
     }
 
-    const url = `${import.meta.env.VITE_BACKEND_URL}/api/chat-rooms/group`;
-    const response = await fetch(url, {
+    fetch("http://localhost:5001/api/users")
+      .then((res) => res.json())
+      .then((data) => {
+        const filtered = data.filter(
+          (user: User) =>
+            user.id !== currentUserId &&
+            user.username.toLowerCase().includes(usernameInput.toLowerCase()) &&
+            !selectedUsers.some((sel) => sel.id === user.id)
+        );
+        setUserSuggestions(filtered);
+      })
+      .catch((err) => console.error("Error loading users:", err));
+  }, [usernameInput, selectedUsers, currentUserId]);
+
+  const handleUserSelect = (user: User) => {
+    setSelectedUsers((prev) => [...prev, user]);
+    setUsernameInput("");
+    setUserSuggestions([]);
+  };
+
+  const handleCreate = async () => {
+    if (!groupName || selectedUsers.length === 0) return;
+
+    const res = await fetch("http://localhost:5001/api/chat-rooms/group", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ name: groupName, memberIds }),
+      body: JSON.stringify({
+        name: groupName,
+        memberIds: [currentUserId, ...selectedUsers.map((u) => u.id)],
+      }),
     });
 
-    const data = await response.json();
-    onGroupCreated(data.roomId);
-  }
+    const data = await res.json();
+    if (data.roomId) {
+      onGroupCreated(data.roomId);
+    } else {
+      alert("Failed to create group chat.");
+    }
+  };
 
   return (
     <div className="modal-background">
       <div className="modal-content">
-        <h2 style={{ textAlign: "center", marginBottom: "1.5rem" }}>Create Group Chat</h2>
-
+        <h2>Create Group Chat</h2>
         <form
-          onSubmit={handleCreate}
-          style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleCreate();
+          }}
         >
           <input
             type="text"
+            placeholder="Group name"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
-            placeholder="Group Name"
-            required
           />
-
-          {selectedIds.length > 0 && (
-            <div className="selected-users">
-              {userList
-                .filter((u) => selectedIds.includes(u.id))
-                .map((u) => (
-                  <span
-                    key={u.id}
-                    className="selected-user-pill"
-                    onClick={() => toggleUser(u.id)}
-                    title="Click to remove"
-                  >
-                    {u.username} ✕
-                  </span>
-                ))}
-            </div>
-          )}
-
 
           <div className="search-dropdown-wrapper">
             <input
               type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Add users by username"
+              value={usernameInput}
+              onChange={(e) => setUsernameInput(e.target.value)}
             />
-
-            {searchTerm && filteredUsers.length > 0 && (
+            {userSuggestions.length > 0 && (
               <ul className="user-suggestions">
-                {filteredUsers.map((user) => (
+                {userSuggestions.map((user) => (
                   <li
                     key={user.id}
-                    onClick={() => toggleUser(user.id)}
-                    className={selectedIds.includes(user.id) ? "selected" : ""}
+                    onClick={() => handleUserSelect(user)}
+                    className="suggestion-item"
                   >
                     {user.username}
                   </li>
                 ))}
               </ul>
             )}
-
           </div>
+
+          {selectedUsers.length > 0 && (
+            <div className="selected-users">
+              {selectedUsers.map((user) => (
+                <span key={user.id} className="user-chip">
+                  {user.username}
+                  <button
+                    onClick={() =>
+                      setSelectedUsers((prev) =>
+                        prev.filter((u) => u.id !== user.id)
+                      )
+                    }
+                    className="remove-user"
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
 
           <div className="modal-actions">
             <button type="button" className="cancel" onClick={onClose}>
@@ -118,7 +137,6 @@ function CreateGroupModal({ onClose, onGroupCreated, currentUserId }) {
       </div>
     </div>
   );
-}
+};
 
 export default CreateGroupModal;
-
