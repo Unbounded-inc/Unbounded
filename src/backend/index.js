@@ -6,6 +6,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const pool = require("./config/db");
 const cookieParser = require("cookie-parser");
+const { initSocketIO } = require("./middleware/notify");
 
 // Route imports
 const chatRoutes = require("./routes/chats");
@@ -107,6 +108,8 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+initSocketIO(io, userSocketMap);
 
 // Start server
 const PORT = process.env.PORT || 5001;

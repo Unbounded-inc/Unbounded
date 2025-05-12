@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
+import { socket } from "../../lib/socket";
 import "../../Styles/Notifications.css";
 
 interface Notification {
@@ -14,19 +15,21 @@ const NotificationSidebar: React.FC = () => {
   const [hasUnseen, setHasUnseen] = useState(false);
 
   useEffect(() => {
-    const dummy: Notification[] = [
-      { id: "1", message: "Manny liked your post.", timestamp: new Date().toISOString() },
-      { id: "2", message: "Isabel commented on your post.", timestamp: new Date().toISOString() },
-      { id: "3", message: "New message from Calvin.", timestamp: new Date().toISOString() },
-      { id: "4", message: "New message from Manny.", timestamp: new Date().toISOString() },
-      { id: "5", message: "New message from Isabel.", timestamp: new Date().toISOString() },
-      { id: "6", message: "New message from Roy.", timestamp: new Date().toISOString() },
-      { id: "7", message: "New message from Maylyn.", timestamp: new Date().toISOString() },
-      { id: "8", message: "New message from Rita.", timestamp: new Date().toISOString() },
-      { id: "10", message: "New message from Arsen.", timestamp: new Date().toISOString() },
-    ];
-    setNotifications(dummy);
-    setHasUnseen(true);
+    const userId = localStorage.getItem("userId");
+    console.log("Registering user:", userId); // should match backend logs
+    if (userId) {
+      socket.emit("register", userId);
+    }
+
+    socket.on("notification", (data: Notification) => {
+      console.log("✅ Received notification:", data); // this MUST show
+      setNotifications((prev) => [data, ...prev]);
+      setHasUnseen(true);
+    });
+
+    return () => {
+      socket.off("notification");
+    };
   }, []);
 
   const toggleSidebar = () => {
@@ -40,10 +43,9 @@ const NotificationSidebar: React.FC = () => {
         className={`notification-button ${hasUnseen ? "shake" : ""}`}
         onClick={toggleSidebar}
       >
-        <Bell size={24} color="#333"/>
-        {hasUnseen && <span className="badge"/>}
+        <Bell size={24} color="#333" />
+        {hasUnseen && <span className="badge" />}
       </button>
-
 
       {visible && (
         <div className="notification-popup">
