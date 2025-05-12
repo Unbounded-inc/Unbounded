@@ -13,7 +13,6 @@ router.post("/one-on-one", async (req, res) => {
   }
 
   try {
-    // Check if a room already exists between both users
     const result = await pool.query(
       `
       SELECT crm.room_id
@@ -35,14 +34,12 @@ router.post("/one-on-one", async (req, res) => {
       return res.json({ roomId: result.rows[0].room_id });
     }
 
-    // ✅ Otherwise, create new room
     const newRoom = await pool.query(
       `INSERT INTO chat_rooms (is_group) VALUES (false) RETURNING id`
     );
 
     const roomId = newRoom.rows[0].id;
 
-    // ✅ Use ON CONFLICT DO NOTHING just in case
     await pool.query(
       `
       INSERT INTO chat_room_members (user_id, room_id)
@@ -54,12 +51,40 @@ router.post("/one-on-one", async (req, res) => {
 
     res.status(201).json({ roomId });
   } catch (err) {
-    console.error("💥 Failed to create chat room:", err);
+    console.error("Failed to create chat room:", err);
     res.status(500).json({ error: err.message || "Server error" });
   }
 
 
 });
+
+router.post("/group", async (req, res) => {
+  const { name, memberIds } = req.body;
+
+  if (!name || !Array.isArray(memberIds) || memberIds.length < 2) {
+    return res.status(400).json({ error: "Name and at least 2 members required" });
+  }
+
+  try {
+    const newRoom = await pool.query(
+      `INSERT INTO chat_rooms (is_group, name) VALUES (true, $1) RETURNING id`,
+      [name]
+    );
+    const roomId = newRoom.rows[0].id;
+
+    const values = memberIds.map((userId, i) => `($${i + 1}, '${roomId}')`).join(',');
+    await pool.query(
+      `INSERT INTO chat_room_members (user_id, room_id) VALUES ${values}`,
+      memberIds
+    );
+
+    res.status(201).json({ roomId });
+  } catch (err) {
+    console.error("Failed to create group chat:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 router.get("/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -75,29 +100,79 @@ router.get("/:userId", async (req, res) => {
 
     const roomUsersResult = await pool.query(
       `
-      SELECT crm.room_id, u.id AS user_id, u.username
+      SELECT 
+        crm.room_id,
+        cr.name AS group_name,
+        cr.is_group,
+        u.id AS user_id,
+        u.username,
       FROM chat_room_members crm
-      JOIN users u ON u.id = crm.user_id
+      JOIN chat_rooms cr ON crm.room_id = cr.id
+      JOIN users u ON crm.user_id = u.id
       WHERE crm.room_id = ANY($1::uuid[])
-        AND crm.user_id != $2
       `,
-      [roomIds, userId]
+      [roomIds]
     );
 
-    const formatted = roomUsersResult.rows.map((row) => ({
-      roomId: row.room_id,
-      user: {
+    const grouped = {};
+
+    for (const row of roomUsersResult.rows) {
+      const roomId = row.room_id;
+      if (!grouped[roomId]) {
+        grouped[roomId] = {
+          roomId: row.room_id,
+          isGroup: row.is_group,
+          groupName: row.group_name,
+          users: [],
+        };
+      }
+
+      grouped[roomId].users.push({
         id: row.user_id,
         username: row.username,
-        name: row.name,
-        profilePic: row.profile_pic,
-      },
-    }));
+        //profilePic: row.profile_pic,
+      });
+    }
 
-    res.json(formatted);
+    const result = Object.values(grouped).map((room) => {
+      if (!room.isGroup && room.users.length === 1) {
+        return {
+          roomId: room.roomId,
+          user: room.users[0],
+        };
+      } else {
+        return {
+          roomId: room.roomId,
+          isGroup: true,
+          groupName: room.groupName,
+          users: room.users,
+        };
+      }
+    });
+
+    res.json(result);
   } catch (err) {
     console.error("Failed to load chat rooms:", err.stack || err);
     res.status(500).json({ error: "Failed to load chat rooms" });
+  }
+});
+
+
+router.get("/room/:roomId/members", async (req, res) => {
+  const { roomId } = req.params;
+
+  try {
+    const result = await pool.query(`
+      SELECT u.id, u.username, u.name, u.profile_pic
+      FROM chat_room_members crm
+      JOIN users u ON crm.user_id = u.id
+      WHERE crm.room_id = $1
+    `, [roomId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to get room members:", err);
+    res.status(500).json({ error: "Failed to get members" });
   }
 });
 
