@@ -9,6 +9,13 @@ interface Notification {
   timestamp: string;
 }
 
+interface DBNotification {
+  id: string;
+  content: string;
+  created_at: string;
+}
+
+
 const NotificationSidebar: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [visible, setVisible] = useState(false);
@@ -16,13 +23,26 @@ const NotificationSidebar: React.FC = () => {
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
-    console.log("Registering user:", userId); // should match backend logs
+
+    // Load from DB on mount
     if (userId) {
       socket.emit("register", userId);
+
+      fetch(`http://localhost:5001/api/notifications/${userId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.notifications) {
+            setNotifications(data.notifications.map((n: DBNotification) => ({
+              id: n.id,
+              message: n.content,
+              timestamp: n.created_at,
+            })));
+          }
+        });
     }
 
     socket.on("notification", (data: Notification) => {
-      console.log("✅ Received notification:", data); // this MUST show
+      console.log("✅ Received notification:", data);
       setNotifications((prev) => [data, ...prev]);
       setHasUnseen(true);
     });
@@ -32,10 +52,19 @@ const NotificationSidebar: React.FC = () => {
     };
   }, []);
 
-  const toggleSidebar = () => {
-    setVisible(!visible);
+
+  const toggleSidebar = async () => {
+    setVisible((prev) => !prev);
     setHasUnseen(false);
+
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      await fetch(`http://localhost:5001/api/notifications/mark-read/${userId}`, {
+        method: "PATCH",
+      });
+    }
   };
+
 
   return (
     <>

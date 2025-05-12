@@ -18,6 +18,7 @@ const forumRoutes = require("./routes/forums");
 const commentRoutes = require("./routes/comments");
 const eventRoutes = require("./routes/events");
 const friendsRoutes = require("./routes/friends");
+const notificationRoutes = require("./routes/notifications");
 
 const app = express();
 const server = http.createServer(app);
@@ -60,6 +61,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/friends", friendsRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/api/notifications", notificationRoutes);
 
 // Socket.io setup
 const userSocketMap = {};
