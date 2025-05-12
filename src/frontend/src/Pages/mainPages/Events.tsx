@@ -4,7 +4,15 @@ import lolImage from "../../assets/lol.jpg";
 import CreateEventModal from "../../components/PageComponets/ CreateEventModal";
 import "../../Styles/Events.css";
 import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+
+const redIcon = new L.Icon({
+  iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
+  iconSize: [32, 32],
+  iconAnchor: [16, 32],
+  popupAnchor: [0, -32],
+});
 
 const Events: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
@@ -51,18 +59,18 @@ const Events: React.FC = () => {
   }, []);
 
   const handleDelete = async (eventId: string) => {
-  const confirmed = window.confirm("Are you sure you want to delete this event?");
-  if (!confirmed) return;
+    const confirmed = window.confirm("Are you sure you want to delete this event?");
+    if (!confirmed) return;
 
-  try {
-    await fetch(`http://localhost:5001/api/events/${eventId}`, {
-      method: "DELETE",
-    });
-    await fetchYourEvents(); // Re-fetch after deletion
-  } catch (err) {
-    console.error("Failed to delete event:", err);
-  }
-};
+    try {
+      await fetch(`http://localhost:5001/api/events/${eventId}`, {
+        method: "DELETE",
+      });
+      await fetchYourEvents(); // Re-fetch after deletion
+    } catch (err) {
+      console.error("Failed to delete event:", err);
+    }
+  };
 
   const localEvents = [
     {
@@ -114,6 +122,22 @@ const Events: React.FC = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap contributors"
               />
+              {/* Add red pins for each of your events with coords */}
+              {yourEvents.map(event => (
+                event.latitude && event.longitude && (
+                  <Marker
+                    key={event.id}
+                    position={[event.latitude, event.longitude]}
+                    icon={redIcon}
+                  >
+                    <Popup>
+                      <strong>{event.title}</strong>
+                      <br />
+                      {event.location}
+                    </Popup>
+                  </Marker>
+                )
+              ))}
             </MapContainer>
           </div>
 
@@ -170,7 +194,7 @@ const Events: React.FC = () => {
                       borderRadius: "8px",
                     }}
                   >
-                    {/* Delete button in top-right corner of the card */}
+                    {/* Delete button */}
                     <button
                       onClick={() => handleDelete(event.id)}
                       style={{
@@ -185,7 +209,7 @@ const Events: React.FC = () => {
                         zIndex: 10,
                         lineHeight: "",
                         padding: "0",
-
+                        
                       }}
                       aria-label="Delete event"
                     >
@@ -193,7 +217,7 @@ const Events: React.FC = () => {
                     </button>
 
                     <img
-                      src={lolImage}
+                      src={event.image_url ? `/uploads/${event.image_url}` : lolImage}
                       alt="Event"
                       style={{
                         width: "90%",

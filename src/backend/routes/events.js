@@ -4,16 +4,16 @@ const db = require("../config/db"); // Your PostgreSQL connection
 
 //  Create a new event
 router.post("/add", async (req, res) => {
-    const { title, description, location, event_date, user_id } = req.body;
+    const { title, description, location, event_date, user_id, latitude, longitude } = req.body;
 
     console.log("Incoming Event Payload:", req.body);
 
     try {
         const result = await db.query(
-            `INSERT INTO events (title, description, location, event_date, user_id)
-             VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO events (title, description, location, event_date, user_id, latitude, longitude)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            [title, description, location, event_date, user_id]
+            [title, description, location, event_date, user_id, latitude, longitude]
         );
 
         res.status(201).json({ message: "Event created", event: result.rows[0] });
