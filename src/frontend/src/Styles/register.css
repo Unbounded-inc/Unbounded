@@ -188,6 +188,7 @@
 .community-input:focus {
     outline: none;
     border-color: #4c569e;
+    
 }
 
 .community-tag-list {

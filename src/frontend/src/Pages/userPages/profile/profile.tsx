@@ -11,8 +11,13 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [localUser, setLocalUser] = useState(user);
 
+  const [communityInput, setCommunityInput] = useState("");
+  const [communities, setCommunities] = useState<string[]>([
+    "Latinx", "Gamers", "Students"
+  ]);
+
   useEffect(() => {
-    setLocalUser(user); // ensure fresh user data if user changes
+    setLocalUser(user);
   }, [user]);
 
   const handleLogout = async () => {
@@ -26,7 +31,6 @@ const Profile: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
-
     const newValue =
       type === "checkbox"
         ? (e.target as HTMLInputElement).checked
@@ -37,7 +41,6 @@ const Profile: React.FC = () => {
       [name]: newValue,
     }));
   };
-
 
   const resizeImage = (file: File, maxSize = 300): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -58,7 +61,7 @@ const Profile: React.FC = () => {
         if (!ctx) return reject("Failed to get canvas context");
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        resolve(canvas.toDataURL("image/jpeg")); // or "image/png"
+        resolve(canvas.toDataURL("image/jpeg"));
       };
 
       reader.onerror = (err) => reject(err);
@@ -78,6 +81,19 @@ const Profile: React.FC = () => {
     }
   };
 
+  const handleAddCommunity = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && communityInput.trim()) {
+      e.preventDefault();
+      if (!communities.includes(communityInput.trim())) {
+        setCommunities([...communities, communityInput.trim()]);
+      }
+      setCommunityInput("");
+    }
+  };
+
+  const handleRemoveCommunity = (index: number) => {
+    setCommunities(communities.filter((_, i) => i !== index));
+  };
 
   const handleSave = async () => {
     if (!localUser) return;
@@ -97,7 +113,7 @@ const Profile: React.FC = () => {
       if (response.ok) {
         alert("Profile updated successfully!");
         setIsEditing(false);
-        await refreshUser(); // sync context with latest changes
+        await refreshUser();
       } else {
         alert("Failed to update profile.");
       }
@@ -112,88 +128,121 @@ const Profile: React.FC = () => {
   return (
     <div className="profile-container">
       <Sidebar />
-
       <div className="profile-box">
-        <img
-          src={localUser.profile_picture || "https://via.placeholder.com/100"}
-          alt="Profile Avatar"
-          className="profile-avatar"
-        />
+        <div className="center-avatar">
+          <img
+            src={localUser.profile_picture || "https://via.placeholder.com/100"}
+            alt="Profile Avatar"
+            className="profile-avatar"
+          />
+        </div>
 
-        {isEditing ? (
-          <>
-            <div className="pfp-upload">
-  <label className="upload-label">Upload New Profile Picture:</label>
-  <input type="file" accept="image/*" onChange={handleImageUpload} className="file-input"/>
-</div>
+        <div className="profile-edit-row">
+          <div className="profile-left">
+            {isEditing ? (
+              <>
+                <div className="pfp-upload">
+                  <label className="upload-label">Upload New Profile Picture:</label>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="file-input"/>
+                </div>
 
-            <label className="upload-label">Username:</label>
-            <input
-              type="text"
-              name="username"
-              value={localUser.username}
-              onChange={handleChange}
-              className="profile-input"
-            />
-            <label className="upload-label">First Name:</label>
-            <input
-              type="text"
-              name="first_name"
-              value={localUser.first_name || ""}
-              onChange={handleChange}
-              className="profile-input"
-              placeholder="First Name"
-            />
-            <label className="upload-label">Last Name:</label>
-            <input
-              type="text"
-              name="last_name"
-              value={localUser.last_name || ""}
-              onChange={handleChange}
-              className="profile-input"
-              placeholder="Last Name"
-            />
-           
-            <label className="upload-label">Biography:</label>
-            <textarea
-              name="bio"
-              value={localUser.bio || ""}
-              onChange={handleChange}
-              className="profile-textarea"
-              placeholder="Your bio..."
-            />
-            <div>
-            <label className="upload-label">
-            Stay Anonymous? 
-              <input
-                type="checkbox"
-                name="is_anonymous"
-                checked={localUser.is_anonymous}
+                <label className="upload-label">Username:</label>
+                <input
+                  type="text"
+                  name="username"
+                  value={localUser.username}
+                  onChange={handleChange}
+                  className="profile-input"
+                />
+                <label className="upload-label">First Name:</label>
+                <input
+                  type="text"
+                  name="first_name"
+                  value={localUser.first_name || ""}
+                  onChange={handleChange}
+                  className="profile-input"
+                  placeholder="First Name"
+                />
+                <label className="upload-label">Last Name:</label>
+                <input
+                  type="text"
+                  name="last_name"
+                  value={localUser.last_name || ""}
+                  onChange={handleChange}
+                  className="profile-input"
+                  placeholder="Last Name"
+                />
+               
+                <div>
+                  <label className="upload-label">
+                    Stay Anonymous?
+                    <input
+                      type="checkbox"
+                      name="is_anonymous"
+                      checked={localUser.is_anonymous}
+                      onChange={handleChange}
+                      className="box"
+                    />
+                  </label>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 style={{margin:'10px'}}>{localUser.first_name} {localUser.last_name}</h2>
+                <h3 style={{margin:'10px'}}>{localUser.username}</h3>
+                <p style={{margin:'10px'}}>{localUser.bio || "No bio provided."}</p>
+                <p style={{margin:'10px'}}><strong>Email:</strong> {localUser.email}</p>
+                <p style={{margin:'10px', marginBottom:"15px"}}><strong>Anonymous:</strong> {localUser.is_anonymous ? "Yes" : "No"}</p>
+                <button style={{backgroundColor:"#2c2456"}} onClick={handleEditToggle}>Edit Profile</button>
+                <button className="logout-button" onClick={handleLogout}>Log Out</button>
+              </>
+            )}
+          </div>
+
+          {isEditing && (
+            <div className="profile-right">
+              <label className="upload-label">Biography:</label>
+              <textarea
+                name="bio"
+                value={localUser.bio || ""}
                 onChange={handleChange}
-                className="box"
+                className="profile-textarea"
+                placeholder="Your bio..."
               />
-            </label>
+              <label className="upload-label">Communities:</label>
+              <input
+                type="text"
+                placeholder="Type and press Enter"
+                className="community-input"
+                value={communityInput}
+                onChange={(e) => setCommunityInput(e.target.value)}
+                onKeyDown={handleAddCommunity}
+              />
+              <div className="community-tag-list">
+                {communities.map((tag, index) => (
+                  <div key={index} className="community-tag">
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCommunity(index)}
+                      className="community-tag-remove"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="edit-buttons">
-              <button style={{backgroundColor:"rgb(76, 86, 158)"}} onClick={handleSave}>Save</button>
-              <button style={{backgroundColor:"#2c2456"}} onClick={() => setIsEditing(false)}>Cancel</button>
-            </div>
-          </>
-        ) : (
-          <>
-          <h2 style={{margin:'10px'}}>{localUser.first_name} {localUser.last_name}</h2>
-            <h3 style={{margin:'10px'}}>{localUser.username}</h3>
-            
-            <p style={{margin:'10px'}}>{localUser.bio || "No bio provided."}</p>
-            <p style={{margin:'10px'}}><strong>Email:</strong> {localUser.email}</p>
-            <p style={{margin:'10px', marginBottom:"15px"}}><strong>Anonymous:</strong> {localUser.is_anonymous ? "Yes" : "No"}</p>
-            <button style={{backgroundColor:"#2c2456"}} onClick={handleEditToggle}>Edit Profile</button>
-          </>
-        )}
+          )}
+        </div>
 
-        <button className="logout-button" onClick={handleLogout}>
-          Log Out
-        </button>
+        {isEditing && (
+          <div className="edit-buttons-wrapper">
+            <button style={{backgroundColor:"rgb(76, 86, 158)"}} onClick={handleSave}>Save</button>
+            <button style={{backgroundColor:"#2c2456"}} onClick={() => setIsEditing(false)}>Cancel</button>
+            <button className="logout-button" onClick={handleLogout}>Log Out</button>
+          </div>
+        )}
       </div>
     </div>
   );
