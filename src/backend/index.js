@@ -6,6 +6,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const pool = require("./config/db");
 const cookieParser = require("cookie-parser");
+const { initSocketIO } = require("./middleware/notify");
 
 // Route imports
 const chatRoutes = require("./routes/chats");
@@ -17,6 +18,7 @@ const forumRoutes = require("./routes/forums");
 const commentRoutes = require("./routes/comments");
 const eventRoutes = require("./routes/events");
 const friendsRoutes = require("./routes/friends");
+const notificationRoutes = require("./routes/notifications");
 
 const app = express();
 const server = http.createServer(app);
@@ -59,6 +61,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/friends", friendsRoutes);
 app.use("/uploads", express.static("uploads"));
+app.use("/api/notifications", notificationRoutes);
 
 // Socket.io setup
 const userSocketMap = {};
@@ -107,6 +110,8 @@ io.on("connection", (socket) => {
     }
   });
 });
+
+initSocketIO(io, userSocketMap);
 
 // Start server
 const PORT = process.env.PORT || 5001;

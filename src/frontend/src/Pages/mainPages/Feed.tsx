@@ -8,6 +8,7 @@ import heart from "../../assets/like.png";
 import comment from "../../assets/comments.png";
 import share from "../../assets/shares.png";
 import PostTextBox from "../../components/PageComponets/PostTextBox";
+import NotificationSidebar from "../../components/PageComponets/NotificationSidebar.tsx";
 
 const Feed: React.FC = () => {
   const { user } = useUser();
@@ -179,19 +180,17 @@ const Feed: React.FC = () => {
   return (
     <div className="feed-container">
       <Sidebar />
+      <NotificationSidebar/>
 
       <main className="feed-content">
         <div className="feed-header">
           <h2>Home Feed</h2>
           <div className="feed-nav-options">
-            <select className="nav-dropdown">
-              <option disabled selected hidden>
-                Communities
-              </option>
-              <option>Carti Fan</option>
-              <option>One Piece Fan</option>
-              <option>Lol</option>
+            <select defaultValue="">
+              <option value="" disabled hidden>Communities</option>
+              <option value="carti">Carti Fan</option>
             </select>
+
             <button className="hover-btn">Friends</button>
             <button className="hover-btn">All</button>
           </div>
@@ -325,14 +324,14 @@ const Feed: React.FC = () => {
         </div>
       )}
 
-      <aside className="feed-right-panel">
-        <div className="notification-panel">
-          <h3>Notifications</h3>
-          <p className="notification-item">Manny liked your post.</p>
-          <p className="notification-item">Isabel commented on your post.</p>
-          <p className="notification-item">New message from Calvin.</p>
-        </div>
-      </aside>
+      {/*<aside className="feed-right-panel">*/}
+      {/*  <div className="notification-panel">*/}
+      {/*    <h3>Notifications</h3>*/}
+      {/*    <p className="notification-item">Manny liked your post.</p>*/}
+      {/*    <p className="notification-item">Isabel commented on your post.</p>*/}
+      {/*    <p className="notification-item">New message from Calvin.</p>*/}
+      {/*  </div>*/}
+      {/*</aside>*/}
     </div>
   );
 };

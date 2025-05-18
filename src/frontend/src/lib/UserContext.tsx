@@ -48,6 +48,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (!res.ok) throw new Error("Not authenticated");
       const data = await res.json();
       setUser(data.user);
+      localStorage.setItem("userId", data.user.id);
     } catch (err) {
       setUser(null);
     } finally {

@@ -1,7 +1,9 @@
 const express = require("express");
+const { v4: uuidv4 } = require("uuid");
 const router = express.Router();
 const db = require("../config/db");
 const multer = require("multer");
+const { sendNotification } = require("../middleware/notify");
 const path = require("path");
 
 const storage = multer.diskStorage({
@@ -67,23 +69,46 @@ router.post("/:postId/like", async (req, res) => {
     const { userId } = req.body;
 
     try {
-        // Check if like already exists
+        // Check if already liked
         const existing = await db.query(
             "SELECT * FROM likes WHERE post_id = $1 AND user_id = $2",
             [postId, userId]
         );
 
         if (existing.rows.length > 0) {
-            // Unlike
             await db.query("DELETE FROM likes WHERE post_id = $1 AND user_id = $2", [postId, userId]);
             return res.json({ message: "Unliked" });
         }
 
-        // Like
         await db.query(
             "INSERT INTO likes (post_id, user_id, created_at) VALUES ($1, $2, NOW())",
             [postId, userId]
         );
+
+        const postResult = await db.query(
+            `SELECT posts.user_id AS post_owner_id, users.username 
+       FROM posts
+       JOIN users ON users.id = $2
+       WHERE posts.id = $1`,
+            [postId, userId]
+        );
+
+        const { post_owner_id, username } = postResult.rows[0];
+
+        if (post_owner_id !== userId) {
+            const content = `${username} liked your post.`;
+            const notifId = uuidv4();
+
+            // Insert into DB
+            await db.query(
+                `INSERT INTO notifications (id, user_id, type, content, is_read, created_at)
+         VALUES ($1, $2, $3, $4, $5, NOW())`,
+                [notifId, post_owner_id, "like", content, false]
+            );
+
+            // Emit real-time
+            sendNotification(post_owner_id, content);
+        }
 
         res.json({ message: "Liked" });
     } catch (err) {

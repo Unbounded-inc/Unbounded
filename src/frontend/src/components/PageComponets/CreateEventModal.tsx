@@ -124,6 +124,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ showModal, setShowM
 
           <input
             type="date"
+            aria-label="Event Date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className="modal-input"
@@ -131,6 +132,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({ showModal, setShowM
 
           <input
             type="time"
+            aria-label="Event Time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
             className="modal-input"
