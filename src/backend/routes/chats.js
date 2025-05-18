@@ -90,19 +90,14 @@ router.get("/:userId", async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    // Step 1: get all room IDs the user is a member of
     const roomIdResult = await pool.query(
       "SELECT room_id FROM chat_room_members WHERE user_id = $1",
       [userId]
     );
 
     const roomIds = roomIdResult.rows.map((r) => r.room_id);
+    if (roomIds.length === 0) return res.json([]);
 
-    if (roomIds.length === 0) {
-      return res.json([]);
-    }
-
-    // Step 2: fetch details for each room and its members
     const roomUsersResult = await pool.query(
       `
       SELECT 
@@ -110,16 +105,18 @@ router.get("/:userId", async (req, res) => {
         cr.name AS group_name,
         cr.is_group::boolean AS is_group,
         u.id AS user_id,
-        u.username
+        u.username,
+        MAX(m.created_at) AS last_message_time
       FROM chat_room_members crm
       JOIN chat_rooms cr ON crm.room_id = cr.id
       JOIN users u ON crm.user_id = u.id
+      LEFT JOIN messages m ON m.room_id = crm.room_id
       WHERE crm.room_id = ANY($1::uuid[])
+      GROUP BY crm.room_id, cr.name, cr.is_group, u.id, u.username
       `,
       [roomIds]
     );
 
-    // Step 3: group users by room ID
     const grouped = {};
     for (const row of roomUsersResult.rows) {
       const roomId = row.room_id;
@@ -128,6 +125,7 @@ router.get("/:userId", async (req, res) => {
           roomId,
           isGroup: row.is_group,
           groupName: row.group_name,
+          lastMessageTime: row.last_message_time,
           users: [],
         };
       }
@@ -136,29 +134,37 @@ router.get("/:userId", async (req, res) => {
         grouped[roomId].users.push({
           id: row.user_id,
           username: row.username,
-          // profilePic: row.profilePic
         });
       }
     }
 
-    // Step 4: build response with `user` field for 1-on-1 chats
-    const result = Object.values(grouped).map((room) => {
-      if (!room.isGroup && room.users.length === 2) {
-        const otherUser = room.users.find((u) => u.id !== userId);
-        return {
-          roomId: room.roomId,
-          isGroup: false,
-          user: otherUser,
-        };
-      } else {
-        return {
-          roomId: room.roomId,
-          isGroup: true,
-          groupName: room.groupName,
-          users: room.users,
-        };
-      }
-    });
+    const result = Object.values(grouped)
+      .filter((room) => room.lastMessageTime !== null) 
+      .sort((a, b) => {
+        const timeA = new Date(a.lastMessageTime).getTime();
+        const timeB = new Date(b.lastMessageTime).getTime();
+        return timeB - timeA;
+      })
+      .map((room) => {
+        if (!room.isGroup && room.users.length === 2) {
+          const otherUser = room.users.find((u) => u.id !== userId);
+          return {
+            roomId: room.roomId,
+            isGroup: false,
+            user: otherUser,
+            lastMessageTime: room.lastMessageTime,
+          };
+        } else {
+          return {
+            roomId: room.roomId,
+            isGroup: true,
+            groupName: room.groupName,
+            users: room.users,
+            lastMessageTime: room.lastMessageTime,
+          };
+        }
+      });
+
 
     res.json(result);
   } catch (err) {
