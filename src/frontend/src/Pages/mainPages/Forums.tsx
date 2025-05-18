@@ -7,6 +7,7 @@ import share from "../../assets/shares.png";
 import Sidebar from "../../components/PageComponets/Sidebar";
 import CreateForumModal from "../../components/PageComponets/CreateForumModal";
 import { useUser } from "../../lib/UserContext";
+import NotificationSidebar from "../../components/PageComponets/NotificationSidebar.tsx";
 
 const Forums: React.FC = () => {
   const { user } = useUser();
@@ -97,6 +98,7 @@ const Forums: React.FC = () => {
   return (
     <div className="feed-container">
       <Sidebar />
+      <NotificationSidebar />
 
       <main className="feed-content">
         <h2 className="friends-title">Community Forums</h2>
@@ -219,14 +221,7 @@ const Forums: React.FC = () => {
         addForum={handleAddForum}
       />
 
-      <aside className="feed-right-panel">
-        <div className="notification-panel">
-          <h3>Notifications</h3>
-          <p className="notification-item">Manny liked your post.</p>
-          <p className="notification-item">Isabel commented on your post.</p>
-          <p className="notification-item">New message from Calvin.</p>
-        </div>
-      </aside>
+
     </div>
   );
 };

@@ -18,7 +18,7 @@
   .feed-content {
     flex: 1;
     margin-left: 80px; 
-    padding: 1rem 2rem;
+    padding: 2rem 2rem;
     overflow-y: auto;
     height: 100vh;
     box-sizing: border-box;
@@ -565,3 +565,4 @@ strong {
   margin: 4px 0 0;
   color: #333;
 }
+
