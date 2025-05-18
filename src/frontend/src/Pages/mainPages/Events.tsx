@@ -1,7 +1,7 @@
 import Sidebar from "../../components/PageComponets/Sidebar";
 import "leaflet/dist/leaflet.css";
 import lolImage from "../../assets/lol.jpg";
-import CreateEventModal from "../../components/PageComponets/ CreateEventModal";
+import CreateEventModal from "../../components/PageComponets/CreateEventModal.tsx";
 import "../../Styles/Events.css";
 import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
