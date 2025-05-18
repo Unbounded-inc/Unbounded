@@ -34,7 +34,9 @@ router.post("/add", async (req, res) => {
         return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const profilePicture = "https://example.com/default-profile.png";
+    const profilePicture = "https://static.vecteezy.com/system/resources/previews/009/292/244/non_2x/default-avatar-icon-of-social-media-user-vector.jpg"; 
+    const bio = "Welcome to Unbounded!";
+
 
     try {
         // Step 1: Get access token from Auth0
@@ -83,7 +85,7 @@ router.post("/add", async (req, res) => {
                 phoneNumber,
                 false,
                 profilePicture,
-                "",
+                bio,
                 firstName,
                 lastName,
                 hashedPassword
