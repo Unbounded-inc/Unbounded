@@ -186,14 +186,11 @@ const Feed: React.FC = () => {
         <div className="feed-header">
           <h2>Home Feed</h2>
           <div className="feed-nav-options">
-            <select className="nav-dropdown">
-              <option disabled selected hidden>
-                Communities
-              </option>
-              <option>Carti Fan</option>
-              <option>One Piece Fan</option>
-              <option>Lol</option>
+            <select defaultValue="">
+              <option value="" disabled hidden>Communities</option>
+              <option value="carti">Carti Fan</option>
             </select>
+
             <button className="hover-btn">Friends</button>
             <button className="hover-btn">All</button>
           </div>
