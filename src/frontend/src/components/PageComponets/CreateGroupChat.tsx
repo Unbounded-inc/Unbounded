@@ -1,10 +1,8 @@
 import { useState } from "react";
-import { createGroupChat } from "../api/chat";
 
 function CreateGroupChat({ onGroupCreated }: { onGroupCreated: (roomId: string) => void }) {
   const [groupName, setGroupName] = useState("");
-  const [memberIds, setMemberIds] = useState<string[]>([]); // selected users
-
+  const [memberIds, setMemberIds] = useState<string[]>([]); 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const newRoomId = await createGroupChat(groupName, memberIds);
@@ -19,7 +17,6 @@ function CreateGroupChat({ onGroupCreated }: { onGroupCreated: (roomId: string) 
         value={groupName}
         onChange={(e) => setGroupName(e.target.value)}
       />
-      {/* Simplified selection UI, you can replace with real user pickers */}
       <input
         type="text"
         placeholder="Comma-separated member IDs"

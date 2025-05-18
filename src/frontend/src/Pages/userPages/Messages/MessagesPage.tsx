@@ -10,8 +10,8 @@ function MessagesPage() {
   const { user } = useUser();
 
   const [activeChat, setActiveChat] = useState(null);
-  const [isNewChat, setIsNewChat] = useState(false); // ✅ track if starting a new DM
-  const [showCreateGroup, setShowCreateGroup] = useState(false); // ✅ track if showing group creation modal
+  const [isNewChat, setIsNewChat] = useState(false); 
+  const [showCreateGroup, setShowCreateGroup] = useState(false); 
 
   useEffect(() => {
     if (!user) {
@@ -28,14 +28,13 @@ function MessagesPage() {
       <ChatSidebar
         userId={user.id}
         onSelectChat={setActiveChat}
-        onNewGroup={() => setShowCreateGroup(true)} // ✅ open group modal
+        onNewGroup={() => setShowCreateGroup(true)} 
         onNewDirectMessage={() => {
           setIsNewChat(true);
-          setActiveChat(null); // ✅ clear active chat
+          setActiveChat(null); 
         }}
       />
 
-      {/* 🛠 Main chat display */}
       {isNewChat ? (
         <NewChatComponent
           currentUserId={user.id}
@@ -50,9 +49,6 @@ function MessagesPage() {
         <div className="chat-main empty-chat-msg">Select a chat to start messaging!</div>
       )}
 
-
-
-      {/* 🛠 Group creation modal */}
       {showCreateGroup && (
         <CreateGroupModal
           onClose={() => setShowCreateGroup(false)}

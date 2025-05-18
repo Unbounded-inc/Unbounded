@@ -357,17 +357,15 @@
   background-color: #f2f2f2;
   font-size: 1rem;
   box-sizing: border-box;
-  color: #401f43; /* 💜 purple text */
+  color: #401f43; 
 }
 
-/* Optional: match placeholder color too */
 .modal-content input::placeholder,
 .modal-content textarea::placeholder {
-  color: #888; /* softer gray for placeholders */
+  color: #888; 
 }
 
 
-/* Emphasize the Group Name input slightly */
 .modal-content input[type="text"] {
   height: 60px; /* taller */
   font-size: 1.1rem;
@@ -392,7 +390,7 @@
   padding: 10px 14px;
   cursor: pointer;
   border-bottom: 1px solid #eee;
-  color: #401f43; /* 💜 purple */
+  color: #401f43;
   font-weight: 500;
 }
 
@@ -433,7 +431,7 @@
   padding: 10px 14px;
   cursor: pointer;
   border-bottom: 1px solid #eee;
-  color: #401f43; /* 💜 purple */
+  color: #401f43; 
   font-weight: 500;
 }
 
@@ -448,8 +446,8 @@
   color: #401f43;
 }
 .suggestion-item {
-  color: #333; /* Darker text */
-  background-color: #f0f0f0; /* Optional: slight gray background */
+  color: #333; 
+  background-color: #f0f0f0;
 }
 
 .selected-users {
@@ -476,5 +474,27 @@
   color: #a100a1;
   cursor: pointer;
   font-size: 0.9rem;
+}
+
+.message-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 1rem;
+}
+
+.message-group.sent {
+  align-items: flex-end;
+}
+
+.message-group.received {
+  align-items: flex-start;
+}
+
+.sender-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 4px;
 }
 
