@@ -116,4 +116,16 @@ router.get("/:forumId/comments", async (req, res) => {
   }
 });
 
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query("DELETE FROM forums WHERE id = $1", [id]);
+    res.json({ message: "Forum deleted" });
+  } catch (err) {
+    console.error("Failed to delete forum:", err.message);
+    res.status(500).json({ error: "Failed to delete forum" });
+  }
+});
+
+
 module.exports = router;
