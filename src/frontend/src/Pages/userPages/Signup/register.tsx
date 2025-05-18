@@ -56,7 +56,6 @@ const Register: React.FC = () => {
             });
 
             console.log("Signup success:", response.data);
-            setSuccess("Account created successfully! Redirecting...");
             setTimeout(() => navigate("/"), 3000);
         } catch (err: any) {
             console.error("Signup failed:", err.response?.data || err.message);
