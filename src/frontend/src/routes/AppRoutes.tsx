@@ -10,6 +10,7 @@ import Friends from "../Pages/mainPages/Friends.tsx";
 import Events from "../Pages/mainPages/Events";
 import Forums from "../Pages/mainPages/Forums";
 import Settings from "../Pages/userPages/profile/Settings";
+import MyPosts from "../Pages/mainPages/MyPosts";
 
 const AppRoutes = () => {
   return (
@@ -74,6 +75,15 @@ const AppRoutes = () => {
   element={
     <PrivateRoute>
       <Settings />
+    </PrivateRoute>
+  }
+/>
+
+<Route
+  path="/my-posts"
+  element={
+    <PrivateRoute>
+      <MyPosts />
     </PrivateRoute>
   }
 />

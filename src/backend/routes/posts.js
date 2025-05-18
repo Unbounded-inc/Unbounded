@@ -117,5 +117,16 @@ router.post("/:postId/like", async (req, res) => {
     }
 });
 
+router.delete("/:id", async (req, res) => {
+    const { id } = req.params;
+    try {
+      await db.query("DELETE FROM posts WHERE id = $1", [id]);
+      res.json({ message: "Post deleted" });
+    } catch (err) {
+      console.error("Failed to delete post:", err.message);
+      res.status(500).json({ error: "Failed to delete post" });
+    }
+  });
+  
 
 module.exports = router;

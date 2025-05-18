@@ -193,7 +193,14 @@ const Profile: React.FC = () => {
                 <p style={{margin:'10px'}}>{localUser.bio || "No bio provided."}</p>
                 <p style={{margin:'10px'}}><strong>Email:</strong> {localUser.email}</p>
                 <p style={{margin:'10px', marginBottom:"15px"}}><strong>Anonymous:</strong> {localUser.is_anonymous ? "Yes" : "No"}</p>
-                <button style={{backgroundColor:"#2c2456"}} onClick={handleEditToggle}>Edit Profile</button>
+                <button style={{backgroundColor:"rgb(76, 86, 158)"}} onClick={handleEditToggle}>Edit Profile</button>
+                <button
+  style={{ backgroundColor: "#2c2456" }}
+  onClick={() => navigate("/my-posts")}
+>
+  View Posts
+</button>
+
                 <button className="logout-button" onClick={handleLogout}>Log Out</button>
               </>
             )}
