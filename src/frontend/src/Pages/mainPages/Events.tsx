@@ -6,6 +6,7 @@ import "../../Styles/Events.css";
 import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import NotificationSidebar from "../../components/PageComponets/NotificationSidebar.tsx";
 
 const redIcon = new L.Icon({
   iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/red-dot.png",
@@ -88,6 +89,7 @@ const Events: React.FC = () => {
   return (
     <div className={`feed-container ${sidebarExpanded ? "sidebar-expanded" : ""}`}>
       <Sidebar />
+      <NotificationSidebar />
 
       <main className="feed-content" style={{ padding: 0 }}>
         <div style={{ padding: "2rem" }}>
@@ -184,14 +186,6 @@ const Events: React.FC = () => {
         </div>
       </main>
 
-      <aside className="feed-right-panel">
-        <div className="notification-panel">
-          <h3>Notifications</h3>
-          <p className="notification-item">Manny liked your post.</p>
-          <p className="notification-item">Isabel commented on your post.</p>
-          <p className="notification-item">New message from Calvin.</p>
-        </div>
-      </aside>
 
       <CreateEventModal
         showModal={showModal}

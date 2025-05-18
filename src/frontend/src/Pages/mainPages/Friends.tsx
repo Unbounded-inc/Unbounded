@@ -4,6 +4,7 @@ import "../../Styles/Friends.css";
 import Sidebar from "../../components/PageComponets/Sidebar";
 import placeholder from "../../assets/placeholder.png";
 import { useUser } from "../../lib/UserContext";
+import NotificationSidebar from "../../components/PageComponets/NotificationSidebar.tsx";
 
 const API_BASE = "http://localhost:5001";
 
@@ -193,6 +194,7 @@ const Friends: React.FC = () => {
   return (
     <div className="feed-container">
       <Sidebar />
+      <NotificationSidebar />
 
       <main className="feed-content">
         <h2 className="friends-title">Friends</h2>
@@ -305,14 +307,6 @@ const Friends: React.FC = () => {
         </div>
       </main>
 
-      <aside className="feed-right-panel">
-        <div className="notification-panel">
-          <h3>Notifications</h3>
-          <p className="notification-item">Manny liked your post.</p>
-          <p className="notification-item">Isabel commented on your post.</p>
-          <p className="notification-item">New message from Calvin.</p>
-        </div>
-      </aside>
     </div>
   );
 };

@@ -2,8 +2,8 @@
     position: fixed;
     top: 1rem;
     right: 1rem;
-    width: 48px;
-    height: 48px;
+    width: 45px;
+    height: 45px;
     background: white;
     border: 2px solid #ccc;
     border-radius: 50%;
@@ -14,6 +14,11 @@
     cursor: pointer;
     z-index: 1000;
 }
+
+.notification-button:hover {
+    border-color: #401f43; 
+}
+
 
 .badge {
     position: absolute;
