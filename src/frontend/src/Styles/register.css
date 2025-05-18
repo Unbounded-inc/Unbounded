@@ -12,7 +12,7 @@
 }
 
 .register-logo {
-    width: 200px;
+    width: 100px;
 }
 
 .register-box {
@@ -161,3 +161,58 @@
     transform: translate(-50%, -50%);
 }
 
+.community-tag-container {
+    width: 100%;
+    text-align: left;
+}
+
+.community-label {
+    font-size: 0.95rem;
+    color: #333;
+    margin-bottom: 6px;
+    display: inline-block;
+}
+
+.community-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    background-color: white;
+    font-size: 0.95rem;
+    color: black;
+    box-sizing: border-box;
+    height: 45px;
+}
+
+.community-input:focus {
+    outline: none;
+    border-color: #4c569e;
+}
+
+.community-tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.community-tag {
+    background-color: #e0e0e0;
+    color: black;
+    padding: 6px 12px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+.community-tag-remove {
+    background: none;
+    border: none;
+    font-size: 0.9rem;
+    margin-left: 6px;
+    cursor: pointer;
+    color: black;
+}
