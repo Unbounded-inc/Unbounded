@@ -17,6 +17,23 @@ const Register: React.FC = () => {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
+    const [communityInput, setCommunityInput] = useState("");
+    const [communities, setCommunities] = useState<string[]>([]);
+
+    const handleAddCommunity = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && communityInput.trim()) {
+            e.preventDefault();
+            if (!communities.includes(communityInput.trim())) {
+                setCommunities([...communities, communityInput.trim()]);
+            }
+            setCommunityInput("");
+        }
+    };
+
+    const handleRemoveCommunity = (index: number) => {
+        setCommunities(communities.filter((_, i) => i !== index));
+    };
+
     const handleSignUp = async () => {
         setError("");
         setSuccess("");
@@ -26,7 +43,7 @@ const Register: React.FC = () => {
             return;
         }
 
-        const cleanedPhone = phoneNumber.replace(/\D/g, ''); // remove non-numeric chars
+        const cleanedPhone = phoneNumber.replace(/\D/g, '');
 
         try {
             const response = await axios.post("http://localhost:5001/api/users/add", {
@@ -91,6 +108,31 @@ const Register: React.FC = () => {
                             value={phoneNumber}
                             onChange={(e) => setPhoneNumber(e.target.value)}
                         />
+                    </div>
+
+                    <div className="community-tag-container">
+                        <input
+                            type="text"
+                            placeholder="Mark at least one community:"
+                            className="community-input"
+                            value={communityInput}
+                            onChange={(e) => setCommunityInput(e.target.value)}
+                            onKeyDown={handleAddCommunity}
+                        />
+                        <div className="community-tag-list">
+                            {communities.map((tag, index) => (
+                                <div key={index} className="community-tag">
+                                    {tag}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveCommunity(index)}
+                                        className="community-tag-remove"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="terms">
