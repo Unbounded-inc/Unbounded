@@ -70,6 +70,7 @@ const NotificationSidebar: React.FC = () => {
     <>
       <button
         className={`notification-button ${hasUnseen ? "shake" : ""}`}
+        aria-label="Bell"
         onClick={toggleSidebar}
       >
         <Bell size={24} color="#333" />
