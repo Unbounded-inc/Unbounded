@@ -5,6 +5,7 @@ import Sidebar from "../../components/PageComponets/Sidebar";
 import placeholder from "../../assets/placeholder.png";
 import { useUser } from "../../lib/UserContext";
 import NotificationSidebar from "../../components/PageComponets/NotificationSidebar.tsx";
+import FriendProfileModal from "../../components/PageComponets/FriendProfileModal";
 
 const API_BASE = "http://localhost:5001";
 
@@ -14,6 +15,9 @@ interface Friend {
   receiver_id: string;
   friendUsername: string;
   friendPfp: string;
+  bio?: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 interface FriendRequest {
@@ -38,13 +42,15 @@ const Friends: React.FC = () => {
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
 
   useEffect(() => {
     if (!user?.id) return;
 
     const fetchRequests = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/friends/requests/${user.id.toString()}`);
+        const res = await axios.get(`${API_BASE}/api/friends/requests/${user.id}`);
         if (!Array.isArray(res.data)) return;
 
         const enriched = await Promise.all(
@@ -65,7 +71,7 @@ const Friends: React.FC = () => {
 
     const fetchSentRequests = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/friends/sent/${user.id.toString()}`);
+        const res = await axios.get(`${API_BASE}/api/friends/sent/${user.id}`);
         const enriched = await Promise.all(
           res.data.map(async (req: FriendRequest) => {
             const receiverRes = await axios.get(`${API_BASE}/api/users/${req.receiver_id}`);
@@ -84,19 +90,23 @@ const Friends: React.FC = () => {
 
     const fetchFriends = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/api/friends/${user.id.toString()}`);
+        const res = await axios.get(`${API_BASE}/api/friends/${user.id}`);
         if (!Array.isArray(res.data)) return;
 
         const enriched = await Promise.all(
           res.data.map(async (relation: Friend) => {
-            const otherId = relation.sender_id === user.id.toString()
-              ? relation.receiver_id
-              : relation.sender_id;
+            const otherId =
+              relation.sender_id === user.id.toString()
+                ? relation.receiver_id
+                : relation.sender_id;
             const otherRes = await axios.get(`${API_BASE}/api/users/${otherId}`);
             return {
               ...relation,
               friendUsername: otherRes.data.username,
               friendPfp: otherRes.data.profile_picture || placeholder,
+              bio: otherRes.data.bio,
+              first_name: otherRes.data.first_name,
+              last_name: otherRes.data.last_name,
             };
           })
         );
@@ -153,8 +163,8 @@ const Friends: React.FC = () => {
       const filtered = res.data.filter(
         (u: User) =>
           u.id.toString() !== user?.id.toString() &&
-          !friends.some(f =>
-            f.sender_id === u.id.toString() || f.receiver_id === u.id.toString()
+          !friends.some(
+            (f) => f.sender_id === u.id.toString() || f.receiver_id === u.id.toString()
           )
       );
       setSearchResults(filtered);
@@ -170,13 +180,12 @@ const Friends: React.FC = () => {
         receiverId: targetId,
       });
 
-      // Get the user's data to build the sent request entry
       const receiverRes = await axios.get(`${API_BASE}/api/users/${targetId}`);
 
       setSentRequests((prev) => [
         ...prev,
         {
-          id: crypto.randomUUID(), // fake ID since we don’t get it from backend
+          id: crypto.randomUUID(),
           sender_id: user!.id.toString(),
           receiver_id: targetId,
           senderUsername: receiverRes.data.username,
@@ -184,7 +193,6 @@ const Friends: React.FC = () => {
         },
       ]);
 
-      // Clean up search results
       setSearchResults((prev) => prev.filter((u) => u.id !== targetId));
     } catch (err) {
       console.error("Failed to send request", err);
@@ -226,7 +234,15 @@ const Friends: React.FC = () => {
                     <p>Friendship ID: {friend.id}</p>
                   </div>
                   <div className="friend-actions">
-                    <button className="view-btn">View</button>
+                    <button
+                      className="view-btn"
+                      onClick={() => {
+                        setSelectedFriend(friend);
+                        setShowProfileModal(true);
+                      }}
+                    >
+                      View
+                    </button>
                     <button
                       className="remove-btn"
                       onClick={() => handleRemoveFriend(friend.id)}
@@ -285,28 +301,39 @@ const Friends: React.FC = () => {
               ))
             )}
           </div>
+        </div>
 
-          {searchResults.length > 0 && (
+        {searchQuery && (
+          <div className="search-results-wrapper">
             <div className="search-results-section">
               <h3 className="section-subtitle">Search Results:</h3>
-              {searchResults.map((u) => (
-                <div key={u.id} className="friend-entry">
-                  <img src={u.profile_picture || placeholder} alt="pfp" className="friend-pfp" />
-                  <div className="friend-text">
-                    <strong>{u.username}</strong>
+              {searchResults.length === 0 ? (
+                <p>No users found.</p>
+              ) : (
+                searchResults.map((u) => (
+                  <div key={u.id} className="friend-entry">
+                    <img src={u.profile_picture || placeholder} alt="pfp" className="friend-pfp" />
+                    <div className="friend-text">
+                      <strong>{u.username}</strong>
+                    </div>
+                    <div className="friend-actions">
+                      <button className="accept-btn" onClick={() => handleSendRequest(u.id)}>
+                        Add Friend
+                      </button>
+                    </div>
                   </div>
-                  <div className="friend-actions">
-                    <button className="accept-btn" onClick={() => handleSendRequest(u.id)}>
-                      Add Friend
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </main>
 
+      <FriendProfileModal
+        show={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        friend={selectedFriend}
+      />
     </div>
   );
 };
