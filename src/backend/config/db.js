@@ -18,7 +18,7 @@ console.log("Database connection info:", {
 const pool = new Pool({
     ...config,
     ssl: { rejectUnauthorized: false },
-    max: 5,
+    max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
 });
