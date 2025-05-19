@@ -33,9 +33,18 @@ const MyPosts: React.FC = () => {
     if (!window.confirm("Are you sure you want to delete this post?")) return;
 
     try {
-      await fetch(`http://localhost:5001/api/posts/${id}`, {
+      const res = await fetch(`http://localhost:5001/api/posts/${id}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: user?.id }),
       });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(`Error: ${data.error}`);
+        return;
+      }
+
       setUserPosts((prev) => prev.filter((p) => p.id !== id));
     } catch (err) {
       console.error("Failed to delete post:", err);
@@ -75,12 +84,17 @@ const MyPosts: React.FC = () => {
             {userPosts.map((post) => (
               <div key={post.id} className="mypost-card">
                 <p>{post.content}</p>
-                {post.image_url && (
-                  <img
-                    src={`http://localhost:5001${post.image_url}`}
-                    alt="Post"
-                    className="mypost-image"
-                  />
+                {Array.isArray(post.image_urls) && post.image_urls.length > 0 && (
+                  <div className="post-images">
+                    {post.image_urls.map((url: string, idx: number) => (
+                      <img
+                        key={idx}
+                        src={url}
+                        alt={`Post ${idx}`}
+                        className="mypost-image"
+                      />
+                    ))}
+                  </div>
                 )}
                 <button
                   onClick={() => handleDeletePost(post.id)}

@@ -176,23 +176,27 @@
     line-height: 1.4;
     font-weight: bolder;
   }
-  
+
   .post-images {
     display: flex;
-    gap: 0.5rem;
     flex-wrap: wrap;
-    margin: 0.5rem 0;
+    gap: 0.75rem;
+    justify-content: center;
+    margin: 1rem 0;
   }
 
-  .post-img {
+
+.post-img {
     width: 100%;
+    max-width: 300px;
     max-height: 400px;
-    object-fit: contain;
+    object-fit: cover;
     border-radius: 12px;
     margin-top: 8px;
   }
-  
-  .post-actions {
+
+
+.post-actions {
     display: flex;
     gap: 1.5rem;
     margin-top: 0.5rem;
