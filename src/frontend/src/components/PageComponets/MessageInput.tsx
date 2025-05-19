@@ -3,6 +3,7 @@ import icon from "../../assets/icon.png";
 import "../../Styles/Messages.css";
 import SendMessage from "../../components/PageComponets/SendMessageButton";
 
+
 interface Props {
   socket: any;
   senderId: string;

@@ -3,18 +3,19 @@ import { useState } from "react";
 import "../../Styles/Sidebar.css";
 import { FiBook, FiHome, FiLogOut, FiMap, FiMessageSquare, FiSettings, FiUser, FiUsers } from "react-icons/fi";
 import ProfileIcon from "./ProfileIcon";
-import { useUser } from "../../lib/UserContext"; // ✅ Import user context
+import { useUser } from "../../lib/UserContext"; 
 
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
-  const { user, logout } = useUser(); // ✅ Access user and logout from context
+  const { user, logout } = useUser(); 
 
   const handleLogout = async () => {
-    await logout(); // ✅ Clear backend + frontend session
-    navigate("/");
+    await logout();            
+    window.location.reload();   
   };
+
 
   return (
     <aside
