@@ -19,6 +19,7 @@ const Events: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
   const [yourEvents, setYourEvents] = useState<any[]>([]);
+  const [allEvents, setAllEvents] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchYourEvents = async () => {
@@ -30,7 +31,17 @@ const Events: React.FC = () => {
       const data = await res.json();
       setYourEvents(data);
     } catch (err) {
-      console.error("Failed to fetch events:", err);
+      console.error("Failed to fetch your events:", err);
+    }
+  };
+
+  const fetchAllEvents = async () => {
+    try {
+      const res = await fetch("http://localhost:5001/api/events/");
+      const data = await res.json();
+      setAllEvents(data);
+    } catch (err) {
+      console.error("Failed to fetch all events:", err);
     }
   };
 
@@ -58,6 +69,7 @@ const Events: React.FC = () => {
 
   useEffect(() => {
     fetchYourEvents();
+    fetchAllEvents();
   }, []);
 
   const handleDelete = async (eventId: string) => {
@@ -69,18 +81,19 @@ const Events: React.FC = () => {
         method: "DELETE",
       });
       await fetchYourEvents();
+      await fetchAllEvents();
     } catch (err) {
       console.error("Failed to delete event:", err);
     }
   };
 
-  const localEvents = [
-    { id: 1, name: "Mario Party", description: "Join us to compete in an epic Mario Party tournament on the Nintendo Switch", location: "Isabel's House" },
-    { id: 2, name: "Pancake Day", description: "IHOP free stack of pancakes to celebrate National Pancake Day", location: "IHOP in the Bronx" },
-    { id: 3, name: "Taste of Dominican Republic", description: "Food tasting event showcasing authentic regional Dominican cuisine.", location: "Central Park" },
-  ];
+  const filteredYourEvents = yourEvents.filter(event =>
+    event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    event.location?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-  const filteredEvents = yourEvents.filter(event =>
+  const filteredLocalEvents = allEvents.filter(event =>
     event.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     event.location?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -114,7 +127,7 @@ const Events: React.FC = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution="&copy; OpenStreetMap contributors"
               />
-              {filteredEvents.map(event =>
+              {allEvents.map(event =>
                 event.latitude && event.longitude && (
                   <Marker key={event.id} position={[event.latitude, event.longitude]} icon={redIcon}>
                     <Popup>
@@ -132,11 +145,15 @@ const Events: React.FC = () => {
             <div style={{ flex: 1, maxWidth: "400px" }}>
               <h3 className="section-subtitle">Local Events:</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                {localEvents.map(event => (
+                {filteredLocalEvents.map(event => (
                   <div key={event.id} className="friend-entry" style={{ flexDirection: "column", alignItems: "center", width: "100%", border: "5px solid rgb(76, 86, 158)" }}>
-                    <img src={lolImage} alt="Event" style={{ width: "90%", height: "100px", objectFit: "cover", borderRadius: "8px 8px 0 0" }} />
+                    <img
+                      src={event.image_url ? `/uploads/${event.image_url}` : lolImage}
+                      alt="Event"
+                      style={{ width: "90%", height: "100px", objectFit: "cover", borderRadius: "8px 8px 0 0" }}
+                    />
                     <div className="friend-text" style={{ width: "90%", textAlign: "center" }}>
-                      <strong>{event.name}</strong>
+                      <strong>{event.title}</strong>
                       <p>{event.description}</p>
                       <p style={{ fontStyle: "italic", color: "#777" }}>{event.location}</p>
                     </div>
@@ -148,7 +165,7 @@ const Events: React.FC = () => {
             <div style={{ flex: 1, maxWidth: "400px" }}>
               <h3 className="section-subtitle">Your Events:</h3>
               <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                {filteredEvents.map(event => (
+                {filteredYourEvents.map(event => (
                   <div key={event.id} className="friend-entry" style={{ position: "relative", flexDirection: "column", alignItems: "center", width: "100%", border: "5px solid rgb(44, 36, 86)", borderRadius: "8px" }}>
                     <button
                       onClick={() => handleDelete(event.id)}
@@ -186,11 +203,13 @@ const Events: React.FC = () => {
         </div>
       </main>
 
-
       <CreateEventModal
         showModal={showModal}
         setShowModal={setShowModal}
-        onEventCreated={(newEvent) => setYourEvents((prev) => [...prev, newEvent])}
+        onEventCreated={(newEvent) => {
+          setYourEvents((prev) => [...prev, newEvent]);
+          setAllEvents((prev) => [...prev, newEvent]);
+        }}
       />
     </div>
   );
