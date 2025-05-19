@@ -1,20 +1,23 @@
-import { useEffect, useState } from "react";
+import placeholder from "../../assets/placeholder.png";
+import { useMemo } from "react";
 
-function ChatSidebar({ userId, onSelectChat, onNewGroup, onNewDirectMessage }) {
-  const [chatRooms, setChatRooms] = useState([]);
+function ChatSidebar({ userId, chats, onSelectChat, onNewGroup, onNewDirectMessage }) {
+  const deduplicated = useMemo(() => {
+    const map = new Map();
 
-  useEffect(() => {
-    async function loadChats() {
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/chat-rooms/${userId}`, {
-        credentials: "include",
-      });
-      const data = await response.json();
-      setChatRooms(data);
-    }
-    if (userId) {
-      loadChats();
-    }
-  }, [userId]);
+    chats.forEach((chat) => {
+      const normalized = {
+        ...chat,
+        members: chat.members || (
+          chat.user ? [chat.user, { id: userId, username: "You" }] : []
+        ),
+        user: chat.user || chat.members?.find((m) => m.id !== userId),
+      };
+      map.set(chat.roomId, normalized);
+    });
+
+    return Array.from(map.values());
+  }, [chats, userId]);
 
   return (
     <div className="messages-sidebar">
@@ -22,24 +25,37 @@ function ChatSidebar({ userId, onSelectChat, onNewGroup, onNewDirectMessage }) {
         <button className="new-chat-btn" onClick={onNewDirectMessage}>
           <span className="plus">+</span> New Chat
         </button>
-
         <button className="new-chat-btn" onClick={onNewGroup}>
           <span className="plus">+</span> New Group Chat
         </button>
       </div>
 
-
-
-
-      {chatRooms.length === 0 ? (
+      {deduplicated.length === 0 ? (
         <div className="empty-chat-msg">No chats yet</div>
       ) : (
-        chatRooms.map((room) => (
-          <div key={room.roomId} className="chat-preview" onClick={() => onSelectChat(room)}>
-            {room.isGroup ? (
-              <span>Group: {room.groupName}</span>
+        deduplicated.map((chat) => (
+          <div
+            key={chat.roomId}
+            className="chat-preview"
+            onClick={() => onSelectChat(chat)}
+          >
+            {chat.isGroup ? (
+              <div className="post-user">
+                <strong>{chat.groupName || `Group (${chat.roomId.slice(0, 4)}…)`}</strong>
+                <p>{chat.users?.map((u) => u?.username).sort().join(", ")}</p>
+              </div>
             ) : (
-              <span>Chat with {room.members[0]?.username}</span>
+              <div className="post-header">
+                <img
+                  src={chat.user?.profilePic || placeholder}
+                  alt="Profile"
+                  className="profile-pic"
+                />
+                <div className="post-user">
+                  <strong>{chat.user?.username || "Unknown"}</strong>
+                  <p>@{chat.user?.username || "unknown"}</p>
+                </div>
+              </div>
             )}
           </div>
         ))

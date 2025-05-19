@@ -28,13 +28,12 @@ const CreateGroupModal: React.FC<Props> = ({
       return;
     }
 
-    fetch("http://localhost:5001/api/users")
+    fetch(`http://localhost:5001/api/users/search?query=${encodeURIComponent(usernameInput)}`)
       .then((res) => res.json())
-      .then((data) => {
-        const filtered = data.filter(
-          (user: User) =>
+      .then((users: User[]) => {
+        const filtered = users.filter(
+          (user) =>
             user.id !== currentUserId &&
-            user.username.toLowerCase().includes(usernameInput.toLowerCase()) &&
             !selectedUsers.some((sel) => sel.id === user.id)
         );
         setUserSuggestions(filtered);

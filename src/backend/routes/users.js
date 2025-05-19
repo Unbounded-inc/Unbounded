@@ -4,6 +4,8 @@ const db = require("../config/db");
 const bcrypt = require("bcryptjs");
 const axios = require("axios");
 
+
+
 // lists users
 router.get("/", async (req, res) => {
     const { page = 1, limit = 10, search = "" } = req.query;
@@ -196,6 +198,30 @@ router.get("/username/:username", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+router.get("/search", async (req, res) => {
+  const { query = "" } = req.query;
+
+  try {
+    const result = await db.query(
+      `SELECT id, username FROM users
+       WHERE username ILIKE $1
+       ORDER BY username
+       LIMIT 10`,
+      [`%${query}%`]
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error("User search failed:", {
+      message: err.message,
+      stack: err.stack,
+      query,
+    });
+    res.status(500).json({ error: "Failed to fetch user" });
+  }
+});
+
+
 
 
 router.get("/:id", async (req, res) => {

@@ -1,11 +1,11 @@
-//this is for messaging logic, messages.js is actual messaging
+// backend/routes/chats.js — PATCHED: use one roomId param, not multiple duplicates
 
 const express = require("express");
 const router = express.Router();
 const pool = require("../config/db");
 
+// Create one-on-one chat
 router.post("/one-on-one", async (req, res) => {
-  console.log("POST /api/chat-rooms/one-on-one called", req.body);
   const { userAId, userBId } = req.body;
 
   if (!userAId || !userBId) {
@@ -14,19 +14,16 @@ router.post("/one-on-one", async (req, res) => {
 
   try {
     const result = await pool.query(
-      `
-      SELECT crm.room_id
-      FROM chat_room_members crm
-      JOIN (
-        SELECT room_id
-        FROM chat_room_members
-        WHERE user_id = $1 OR user_id = $2
-        GROUP BY room_id
-        HAVING COUNT(*) = 2
-      ) matched_rooms ON crm.room_id = matched_rooms.room_id
-      GROUP BY crm.room_id
-      HAVING COUNT(*) = 2
-      `,
+      `SELECT crm.room_id
+       FROM chat_room_members crm
+       JOIN (
+         SELECT room_id FROM chat_room_members
+         WHERE user_id = $1 OR user_id = $2
+         GROUP BY room_id
+         HAVING COUNT(*) = 2
+       ) matched_rooms ON crm.room_id = matched_rooms.room_id
+       GROUP BY crm.room_id
+       HAVING COUNT(*) = 2`,
       [userAId, userBId]
     );
 
@@ -37,27 +34,21 @@ router.post("/one-on-one", async (req, res) => {
     const newRoom = await pool.query(
       `INSERT INTO chat_rooms (is_group) VALUES (false) RETURNING id`
     );
-
     const roomId = newRoom.rows[0].id;
 
     await pool.query(
-      `
-      INSERT INTO chat_room_members (user_id, room_id)
-      VALUES ($1, $2), ($3, $2)
-      ON CONFLICT DO NOTHING
-      `,
+      `INSERT INTO chat_room_members (user_id, room_id) VALUES ($1, $2), ($3, $2)`,
       [userAId, roomId, userBId]
     );
 
     res.status(201).json({ roomId });
   } catch (err) {
-    console.error("Failed to create chat room:", err);
-    res.status(500).json({ error: err.message || "Server error" });
+    console.error("Failed to create one-on-one chat:", err);
+    res.status(500).json({ error: "Server error" });
   }
-
-
 });
 
+// Create group chat (deduplicates)
 router.post("/group", async (req, res) => {
   const { name, memberIds } = req.body;
 
@@ -66,131 +57,116 @@ router.post("/group", async (req, res) => {
   }
 
   try {
+    const sortedIds = memberIds.slice().sort();
+
+    const candidateRooms = await pool.query(
+      `SELECT crm.room_id
+       FROM chat_room_members crm
+       JOIN chat_rooms cr ON cr.id = crm.room_id
+       WHERE cr.is_group = true
+       GROUP BY crm.room_id
+       HAVING COUNT(DISTINCT crm.user_id) = $1`,
+      [sortedIds.length]
+    );
+
+    for (const row of candidateRooms.rows) {
+      const roomId = row.room_id;
+      const membersResult = await pool.query(
+        `SELECT user_id FROM chat_room_members WHERE room_id = $1 ORDER BY user_id`,
+        [roomId]
+      );
+      const dbIds = membersResult.rows.map(r => r.user_id);
+      const match = dbIds.join(",") === sortedIds.join(",");
+      if (match) {
+        return res.json({ roomId });
+      }
+    }
+
     const newRoom = await pool.query(
       `INSERT INTO chat_rooms (is_group, name) VALUES (true, $1) RETURNING id`,
       [name]
     );
     const roomId = newRoom.rows[0].id;
 
-    const values = memberIds.map((userId, i) => `($${i + 1}, '${roomId}')`).join(',');
+    const placeholders = memberIds.map((_, i) => `($${i + 1}, $${memberIds.length + 1})`).join(", ");
+    const values = [...memberIds, roomId];
+
     await pool.query(
-      `INSERT INTO chat_room_members (user_id, room_id) VALUES ${values}`,
-      memberIds
+      `INSERT INTO chat_room_members (user_id, room_id) VALUES ${placeholders}`,
+      values
     );
 
     res.status(201).json({ roomId });
   } catch (err) {
-    console.error("Failed to create group chat:", err);
+    console.error("Failed to create group chat:", { message: err.message, stack: err.stack });
     res.status(500).json({ error: "Server error" });
   }
 });
 
-
+// Get all chat rooms for a user, including message counts
 router.get("/:userId", async (req, res) => {
-  const userId = req.params.userId;
-
+  const { userId } = req.params;
   try {
-    const roomIdResult = await pool.query(
-      "SELECT room_id FROM chat_room_members WHERE user_id = $1",
+    const result = await pool.query(
+      `WITH user_rooms AS (
+         SELECT cr.id AS room_id, cr.is_group, cr.name AS group_name
+         FROM chat_rooms cr
+         JOIN chat_room_members crm ON crm.room_id = cr.id
+         WHERE crm.user_id = $1
+       ),
+       room_members AS (
+         SELECT crm.room_id,
+                json_agg(json_build_object(
+                  'id', u.id,
+                  'username', u.username,
+                  'profilePic', u.profile_picture
+                )) AS members
+         FROM chat_room_members crm
+         JOIN users u ON crm.user_id = u.id
+         GROUP BY crm.room_id
+       ),
+       message_counts AS (
+         SELECT room_id, COUNT(*) AS message_count
+         FROM messages
+         GROUP BY room_id
+       )
+       SELECT 
+         ur.room_id,
+         ur.is_group,
+         ur.group_name,
+         COALESCE(mc.message_count, 0) AS message_count,
+         rm.members
+       FROM user_rooms ur
+       LEFT JOIN room_members rm ON rm.room_id = ur.room_id
+       LEFT JOIN message_counts mc ON mc.room_id = ur.room_id;`,
       [userId]
     );
 
-    const roomIds = roomIdResult.rows.map((r) => r.room_id);
-    if (roomIds.length === 0) return res.json([]);
-
-    const roomUsersResult = await pool.query(
-      `
-      SELECT 
-        crm.room_id,
-        cr.name AS group_name,
-        cr.is_group::boolean AS is_group,
-        u.id AS user_id,
-        u.username,
-        MAX(m.created_at) AS last_message_time
-      FROM chat_room_members crm
-      JOIN chat_rooms cr ON crm.room_id = cr.id
-      JOIN users u ON crm.user_id = u.id
-      LEFT JOIN messages m ON m.room_id = crm.room_id
-      WHERE crm.room_id = ANY($1::uuid[])
-      GROUP BY crm.room_id, cr.name, cr.is_group, u.id, u.username
-      `,
-      [roomIds]
-    );
-
-    const grouped = {};
-    for (const row of roomUsersResult.rows) {
-      const roomId = row.room_id;
-      if (!grouped[roomId]) {
-        grouped[roomId] = {
-          roomId,
-          isGroup: row.is_group,
+    const formatted = result.rows.map((row) => {
+      if (row.is_group) {
+        return {
+          roomId: row.room_id,
+          isGroup: true,
           groupName: row.group_name,
-          lastMessageTime: row.last_message_time,
-          users: [],
+          message_count: row.message_count,
+          users: row.members,
+        };
+      } else {
+        const otherUser = row.members.find((u) => u.id !== userId);
+        return {
+          roomId: row.room_id,
+          isGroup: false,
+          message_count: row.message_count,
+          user: otherUser || { id: null, username: "Unknown" },
         };
       }
+    });
 
-      if (!grouped[roomId].users.find((u) => u.id === row.user_id)) {
-        grouped[roomId].users.push({
-          id: row.user_id,
-          username: row.username,
-        });
-      }
-    }
-
-    const result = Object.values(grouped)
-      .filter((room) => room.lastMessageTime !== null) 
-      .sort((a, b) => {
-        const timeA = new Date(a.lastMessageTime).getTime();
-        const timeB = new Date(b.lastMessageTime).getTime();
-        return timeB - timeA;
-      })
-      .map((room) => {
-        if (!room.isGroup && room.users.length === 2) {
-          const otherUser = room.users.find((u) => u.id !== userId);
-          return {
-            roomId: room.roomId,
-            isGroup: false,
-            user: otherUser,
-            lastMessageTime: room.lastMessageTime,
-          };
-        } else {
-          return {
-            roomId: room.roomId,
-            isGroup: true,
-            groupName: room.groupName,
-            users: room.users,
-            lastMessageTime: room.lastMessageTime,
-          };
-        }
-      });
-
-
-    res.json(result);
+    res.json(formatted);
   } catch (err) {
-    console.error("Error in GET /chat-rooms/:userId:", err);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Failed to load chat rooms:", err.stack || err);
+    res.status(500).json({ error: "Failed to load chat rooms" });
   }
 });
-
-
-router.get("/room/:roomId/members", async (req, res) => {
-  const { roomId } = req.params;
-
-  try {
-    const result = await pool.query(`
-      SELECT u.id, u.username, u.name, u.profile_pic
-      FROM chat_room_members crm
-      JOIN users u ON crm.user_id = u.id
-      WHERE crm.room_id = $1
-    `, [roomId]);
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Failed to get room members:", err);
-    res.status(500).json({ error: "Failed to get members" });
-  }
-});
-
 
 module.exports = router;
