@@ -3,42 +3,61 @@ const { v4: uuidv4 } = require("uuid");
 const router = express.Router();
 const db = require("../config/db");
 const multer = require("multer");
+const AWS = require("aws-sdk");
+require("dotenv").config();
 const { sendNotification } = require("../middleware/notify");
-const path = require("path");
 
-const storage = multer.diskStorage({
-    destination: "uploads/",
-    filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-    },
+// Use memory storage for multer
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Configure AWS SDK for DigitalOcean Spaces
+const s3 = new AWS.S3({
+    endpoint: new AWS.Endpoint(process.env.DO_SPACE_ENDPOINT),
+    accessKeyId: process.env.DO_SPACE_KEY,
+    secretAccessKey: process.env.DO_SPACE_SECRET,
 });
 
-const upload = multer({ storage });
-
-router.post("/", upload.single("image"), async (req, res) => {
+// Create a post with optional image uploads (multiple)
+router.post("/", upload.array("images"), async (req, res) => {
     const { user_id, content, is_anonymous } = req.body;
-    const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+    const files = req.files || [];
 
     if (!user_id || !content) {
         return res.status(400).json({ error: "user_id and content are required" });
     }
 
     try {
+        const imageUrls = [];
+
+        for (const file of files) {
+            const fileName = `${Date.now()}-${file.originalname}`;
+            const params = {
+                Bucket: process.env.DO_SPACE_BUCKET,
+                Key: fileName,
+                Body: file.buffer,
+                ACL: "public-read",
+                ContentType: file.mimetype,
+            };
+
+            const uploadResult = await s3.upload(params).promise();
+            imageUrls.push(uploadResult.Location);
+        }
+
         const result = await db.query(
-            `INSERT INTO posts (user_id, content, image_url, is_anonymous)
-       VALUES ($1, $2, $3, $4)
+            `INSERT INTO posts (id, user_id, content, image_urls, is_anonymous, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
        RETURNING *`,
-            [user_id, content, image_url, is_anonymous === "true"]
+            [uuidv4(), user_id, content, JSON.stringify(imageUrls), is_anonymous === "true"]
         );
 
         res.status(201).json({ message: "Post created", post: result.rows[0] });
     } catch (err) {
-        console.error("Failed to create post:", err.message);
-        res.status(500).json({ error: "Failed to create post", details: err.message });
+        console.error("Failed to create post:", err);
+        res.status(500).json({ error: "Failed to create post", details: err });
     }
 });
 
-
+// Get all posts
 router.get("/", async (req, res) => {
     try {
         const result = await db.query(`
@@ -62,14 +81,12 @@ router.get("/", async (req, res) => {
     }
 });
 
-
 // Like/unlike a post
 router.post("/:postId/like", async (req, res) => {
     const { postId } = req.params;
     const { userId } = req.body;
 
     try {
-        // Check if already liked
         const existing = await db.query(
             "SELECT * FROM likes WHERE post_id = $1 AND user_id = $2",
             [postId, userId]
@@ -99,14 +116,12 @@ router.post("/:postId/like", async (req, res) => {
             const content = `${username} liked your post.`;
             const notifId = uuidv4();
 
-            // Insert into DB
             await db.query(
                 `INSERT INTO notifications (id, user_id, type, content, is_read, created_at)
          VALUES ($1, $2, $3, $4, $5, NOW())`,
                 [notifId, post_owner_id, "like", content, false]
             );
 
-            // Emit real-time
             sendNotification(post_owner_id, content);
         }
 
@@ -117,16 +132,16 @@ router.post("/:postId/like", async (req, res) => {
     }
 });
 
+// Delete a post
 router.delete("/:id", async (req, res) => {
     const { id } = req.params;
     try {
-      await db.query("DELETE FROM posts WHERE id = $1", [id]);
-      res.json({ message: "Post deleted" });
+        await db.query("DELETE FROM posts WHERE id = $1", [id]);
+        res.json({ message: "Post deleted" });
     } catch (err) {
-      console.error("Failed to delete post:", err.message);
-      res.status(500).json({ error: "Failed to delete post" });
+        console.error("Failed to delete post:", err.message);
+        res.status(500).json({ error: "Failed to delete post" });
     }
-  });
-  
+});
 
 module.exports = router;
