@@ -14,7 +14,7 @@ const Feed: React.FC = () => {
   const { user } = useUser();
   const [postText, setPostText] = useState("");
   const [posts, setPosts] = useState<any[]>([]);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [commentText, setCommentText] = useState("");
@@ -25,17 +25,19 @@ const Feed: React.FC = () => {
       try {
         const res = await fetch("http://localhost:5001/api/posts");
         const data = await res.json();
-        setPosts(data.posts.map((post: any) => ({
-          ...post,
-          likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
-          likeCount: Number(post.like_count) || 0
-        })));
+        setPosts(
+          data.posts.map((post: any) => ({
+            ...post,
+            likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
+            likeCount: Number(post.like_count) || 0,
+          }))
+        );
       } catch (err) {
         console.error("Failed to load posts:", err);
       }
     };
 
-    fetchPosts();
+    void fetchPosts();
   }, [user]);
 
   const fetchComments = async (postId: string) => {
@@ -81,29 +83,34 @@ const Feed: React.FC = () => {
   };
 
   const handleFileChange = () => {
-    const file = fileInputRef.current?.files?.[0];
-    if (file) {
-      const maxSizeMB = 2;
-      const maxSizeBytes = maxSizeMB * 1024 * 1024;
+    const files = fileInputRef.current?.files;
+    if (!files) return;
 
+    const maxSizeMB = 2;
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+
+    Array.from(files).forEach((file) => {
       if (file.size > maxSizeBytes) {
-        alert(`File is too large. Max size is ${maxSizeMB}MB.`);
-        if (fileInputRef.current) fileInputRef.current.value = "";
+        alert(`File ${file.name} is too large. Max size is ${maxSizeMB}MB.`);
         return;
       }
 
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewUrl(reader.result as string);
+        setPreviewUrls((prev) => [...prev, reader.result as string]);
       };
       reader.readAsDataURL(file);
-    }
+    });
   };
 
-  const handleRemoveImage = () => {
-    setPreviewUrl(null);
+  const handleRemoveImage = (index: number) => {
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      const dt = new DataTransfer();
+      const files = Array.from(fileInputRef.current.files || []);
+      files.splice(index, 1);
+      files.forEach((file) => dt.items.add(file));
+      fileInputRef.current.files = dt.files;
     }
   };
 
@@ -114,8 +121,11 @@ const Feed: React.FC = () => {
     formData.append("user_id", user.id.toString());
     formData.append("content", postText);
     formData.append("is_anonymous", "false");
-    if (fileInputRef.current?.files?.[0]) {
-      formData.append("image", fileInputRef.current.files[0]);
+
+    if (fileInputRef.current?.files) {
+      Array.from(fileInputRef.current.files).forEach((file) => {
+        formData.append("images", file);
+      });
     }
 
     try {
@@ -129,13 +139,15 @@ const Feed: React.FC = () => {
       if (response.ok) {
         const res = await fetch("http://localhost:5001/api/posts");
         const refreshed = await res.json();
-        setPosts(refreshed.posts.map((post: any) => ({
-          ...post,
-          likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
-          likeCount: Number(post.like_count) || 0
-        })));
+        setPosts(
+          refreshed.posts.map((post: any) => ({
+            ...post,
+            likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
+            likeCount: Number(post.like_count) || 0,
+          }))
+        );
         setPostText("");
-        setPreviewUrl(null);
+        setPreviewUrls([]);
         if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
         console.error("Post creation failed:", data.error);
@@ -151,9 +163,7 @@ const Feed: React.FC = () => {
     try {
       const res = await fetch(`http://localhost:5001/api/posts/${postId}/like`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId: user.id }),
       });
 
@@ -180,7 +190,7 @@ const Feed: React.FC = () => {
   return (
     <div className="feed-container">
       <Sidebar />
-      <NotificationSidebar/>
+      <NotificationSidebar />
 
       <main className="feed-content">
         <div className="feed-header">
@@ -190,13 +200,11 @@ const Feed: React.FC = () => {
               <option value="" disabled hidden>Communities</option>
               <option value="carti">Carti Fan</option>
             </select>
-
             <button className="hover-btn">Friends</button>
             <button className="hover-btn">All</button>
           </div>
         </div>
 
-        {/* New Post Input Box */}
         <div className="new-post">
           <img
             src={user?.profile_picture || placeholder}
@@ -205,12 +213,20 @@ const Feed: React.FC = () => {
           />
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <PostTextBox postText={postText} onChange={handleInputChange} />
-            {previewUrl && (
-              <div style={{ position: "relative", display: "inline-block" }}>
-                <img src={previewUrl} alt="Preview" className="preview-img" />
-                <button onClick={handleRemoveImage} className="remove-image-btn" aria-label="Remove image">
-                  ×
-                </button>
+            {previewUrls.length > 0 && (
+              <div className="preview-container">
+                {previewUrls.map((url, idx) => (
+                  <div key={idx} style={{ position: "relative", display: "inline-block" }}>
+                    <img src={url} alt={`Preview ${idx}`} className="preview-img" />
+                    <button
+                      onClick={() => handleRemoveImage(idx)}
+                      className="remove-image-btn"
+                      aria-label="Remove image"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
               </div>
             )}
             <div className="button-row">
@@ -220,6 +236,7 @@ const Feed: React.FC = () => {
                   id="file-upload"
                   type="file"
                   accept="image/*"
+                  multiple
                   style={{ display: "none" }}
                   ref={fileInputRef}
                   onChange={handleFileChange}
@@ -228,14 +245,11 @@ const Feed: React.FC = () => {
                   Photo
                 </button>
               </div>
-              <button className="upload-btn" onClick={handleUpload}>
-                Upload
-              </button>
+              <button className="upload-btn" onClick={handleUpload}>Upload</button>
             </div>
           </div>
         </div>
 
-        {/* Posts */}
         {posts.map((post) => (
           <div className="post" key={post.id}>
             <div className="post-header">
@@ -246,9 +260,11 @@ const Feed: React.FC = () => {
               </div>
             </div>
             <p className="post-content">{post.content}</p>
-            {post.image_url && (
+            {Array.isArray(post.image_urls) && post.image_urls.length > 0 && (
               <div className="post-images">
-                <img src={`http://localhost:5001${post.image_url}`} alt="Post" className="post-img" />
+                {post.image_urls.map((url: string, idx: number) => (
+                  <img key={idx} src={url} alt={`Post ${idx}`} className="post-img" />
+                ))}
               </div>
             )}
             <div className="post-actions">
@@ -273,12 +289,12 @@ const Feed: React.FC = () => {
           <div className="tweet-modal-content">
             <h2>{selectedPost.content}</h2>
             <p className="tweet-modal-text">@{selectedPost.username}</p>
-            {selectedPost.image_url && (
-              <img
-                src={`http://localhost:5001${selectedPost.image_url}`}
-                alt="Tweet"
-                style={{ width: "100%", borderRadius: "12px", marginTop: "1rem" }}
-              />
+            {Array.isArray(selectedPost.image_urls) && selectedPost.image_urls.length > 0 && (
+              <div className="post-images">
+                {selectedPost.image_urls.map((url: string, idx: number) => (
+                  <img key={idx} src={url} alt={`Post Detail ${idx}`} className="post-img" />
+                ))}
+              </div>
             )}
             <div className="tweet-modal-comment-box">
               <img src={user?.profile_picture || placeholder} alt="profile" className="profile-pic" />
@@ -306,14 +322,13 @@ const Feed: React.FC = () => {
               <p style={{ marginTop: "1rem", color: "#777" }}>No comments yet.</p>
             ) : (
               comments.map((cmt) => (
-                <div key={cmt.id} className="comment" style={{ display: "flex", alignItems: "flex-start", gap: "10px", marginTop: "1rem" }}>
+                <div key={cmt.id} className="comment">
                   <img
                     src={cmt.profile_picture || placeholder}
                     alt="pfp"
                     className="profile-pic"
-                    style={{ width: "40px", height: "40px", borderRadius: "50%" }}
                   />
-                  <div style={{ background: "#f5f5f5", padding: "8px 12px", borderRadius: "12px", maxWidth: "90%" }}>
+                  <div>
                     <strong>{cmt.username}</strong>
                     <p>{cmt.content}</p>
                   </div>
@@ -323,15 +338,6 @@ const Feed: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/*<aside className="feed-right-panel">*/}
-      {/*  <div className="notification-panel">*/}
-      {/*    <h3>Notifications</h3>*/}
-      {/*    <p className="notification-item">Manny liked your post.</p>*/}
-      {/*    <p className="notification-item">Isabel commented on your post.</p>*/}
-      {/*    <p className="notification-item">New message from Calvin.</p>*/}
-      {/*  </div>*/}
-      {/*</aside>*/}
     </div>
   );
 };
