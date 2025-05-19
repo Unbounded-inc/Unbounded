@@ -45,8 +45,8 @@ router.post("/", upload.array("images"), async (req, res) => {
 
         const result = await db.query(
             `INSERT INTO posts (id, user_id, content, image_urls, is_anonymous, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-       RETURNING *`,
+             VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+                 RETURNING *`,
             [uuidv4(), user_id, content, JSON.stringify(imageUrls), is_anonymous === "true"]
         );
 
@@ -57,22 +57,21 @@ router.post("/", upload.array("images"), async (req, res) => {
     }
 });
 
-// Get all posts
 router.get("/", async (req, res) => {
     try {
         const result = await db.query(`
-      SELECT 
-        posts.*, 
-        users.username, 
-        users.profile_picture,
-        COALESCE(COUNT(likes.id), 0) AS like_count,
-        ARRAY_AGG(likes.user_id) FILTER (WHERE likes.user_id IS NOT NULL) AS liked_by_ids
-      FROM posts
-      JOIN users ON posts.user_id = users.id
-      LEFT JOIN likes ON likes.post_id = posts.id
-      GROUP BY posts.id, users.id
-      ORDER BY posts.created_at DESC
-    `);
+            SELECT
+                posts.*,
+                users.username,
+                users.profile_picture,
+                COALESCE(COUNT(likes.id), 0) AS like_count,
+                ARRAY_AGG(likes.user_id) FILTER (WHERE likes.user_id IS NOT NULL) AS liked_by_ids
+            FROM posts
+                     JOIN users ON posts.user_id = users.id
+                     LEFT JOIN likes ON likes.post_id = posts.id
+            GROUP BY posts.id, users.id
+            ORDER BY posts.created_at DESC
+        `);
 
         res.json({ posts: result.rows });
     } catch (err) {
@@ -81,7 +80,6 @@ router.get("/", async (req, res) => {
     }
 });
 
-// Like/unlike a post
 router.post("/:postId/like", async (req, res) => {
     const { postId } = req.params;
     const { userId } = req.body;
@@ -103,10 +101,10 @@ router.post("/:postId/like", async (req, res) => {
         );
 
         const postResult = await db.query(
-            `SELECT posts.user_id AS post_owner_id, users.username 
-       FROM posts
-       JOIN users ON users.id = $2
-       WHERE posts.id = $1`,
+            `SELECT posts.user_id AS post_owner_id, users.username
+             FROM posts
+                      JOIN users ON users.id = $2
+             WHERE posts.id = $1`,
             [postId, userId]
         );
 
@@ -118,7 +116,7 @@ router.post("/:postId/like", async (req, res) => {
 
             await db.query(
                 `INSERT INTO notifications (id, user_id, type, content, is_read, created_at)
-         VALUES ($1, $2, $3, $4, $5, NOW())`,
+                 VALUES ($1, $2, $3, $4, $5, NOW())`,
                 [notifId, post_owner_id, "like", content, false]
             );
 
@@ -132,7 +130,6 @@ router.post("/:postId/like", async (req, res) => {
     }
 });
 
-// Delete a post
 router.delete("/:id", async (req, res) => {
     const { id } = req.params;
     const { user_id } = req.body;
@@ -162,6 +159,38 @@ router.delete("/:id", async (req, res) => {
     } catch (err) {
         console.error("Failed to delete post:", err.message);
         res.status(500).json({ error: "Failed to delete post" });
+    }
+});
+
+router.get("/friends/:userId", async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const query = `
+            SELECT posts.*, users.username, users.profile_picture,
+                   ARRAY_AGG(likes.user_id) AS liked_by_ids,
+                   COUNT(likes.user_id) AS like_count
+            FROM posts
+                     JOIN users ON users.id = posts.user_id
+                     LEFT JOIN likes ON likes.post_id = posts.id
+            WHERE posts.user_id IN (
+                SELECT CASE
+                           WHEN sender_id = $1 THEN receiver_id
+                           WHEN receiver_id = $1 THEN sender_id
+                           END
+                FROM friend_requests
+                WHERE (sender_id = $1 OR receiver_id = $1)
+                  AND status = 'accepted'
+            )
+            GROUP BY posts.id, users.username, users.profile_picture
+            ORDER BY posts.created_at DESC;
+        `;
+
+        const result = await db.query(query, [userId]);
+        res.json({ posts: result.rows });
+    } catch (err) {
+        console.error("Failed to fetch friends' posts:", err);
+        res.status(500).json({ error: "Server error" });
     }
 });
 

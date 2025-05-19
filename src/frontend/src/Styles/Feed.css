@@ -570,3 +570,20 @@ strong {
   color: #333;
 }
 
+.hover-btn {
+  background-color: transparent;
+  color: black;
+  font-weight: normal;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: 0.2s ease;
+}
+
+.hover-btn.active-filter {
+  background-color: #6c63ff;
+  color: white;
+  font-weight: bold;
+}
+
+

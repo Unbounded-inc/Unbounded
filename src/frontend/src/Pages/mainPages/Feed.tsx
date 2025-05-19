@@ -19,26 +19,49 @@ const Feed: React.FC = () => {
   const [selectedPost, setSelectedPost] = useState<any | null>(null);
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
+  const [showOnlyFriends, setShowOnlyFriends] = useState(false);
+
+  const fetchFriendsPosts = async () => {
+    if (!user?.id) return;
+    try {
+      const res = await fetch(`http://localhost:5001/api/posts/friends/${user.id}`);
+      const data = await res.json();
+      setPosts(
+        data.posts.map((post: any) => ({
+          ...post,
+          likedByCurrentUser: post.liked_by_ids?.includes(user.id),
+          likeCount: Number(post.like_count) || 0,
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to load friends' posts:", err);
+    }
+  };
+
+
+  const fetchAllPosts = async () => {
+    try {
+      const res = await fetch("http://localhost:5001/api/posts");
+      const data = await res.json();
+      setPosts(
+        data.posts.map((post: any) => ({
+          ...post,
+          likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
+          likeCount: Number(post.like_count) || 0,
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to load posts:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const res = await fetch("http://localhost:5001/api/posts");
-        const data = await res.json();
-        setPosts(
-          data.posts.map((post: any) => ({
-            ...post,
-            likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
-            likeCount: Number(post.like_count) || 0,
-          }))
-        );
-      } catch (err) {
-        console.error("Failed to load posts:", err);
-      }
-    };
+    (async () => {
+      await fetchAllPosts();
+    })();
+  }, []);
 
-    void fetchPosts();
-  }, [user]);
+
 
   const fetchComments = async (postId: string) => {
     try {
@@ -200,8 +223,24 @@ const Feed: React.FC = () => {
               <option value="" disabled hidden>Communities</option>
               <option value="carti">Carti Fan</option>
             </select>
-            <button className="hover-btn">Friends</button>
-            <button className="hover-btn">All</button>
+            <button
+              className={`hover-btn ${showOnlyFriends ? "active-filter" : ""}`}
+              onClick={async () => {
+                await fetchFriendsPosts();
+                setShowOnlyFriends(true);
+              }}
+            >
+              Friends
+            </button>
+            <button
+              className={`hover-btn ${!showOnlyFriends ? "active-filter" : ""}`}
+              onClick={async () => {
+                await fetchAllPosts();
+                setShowOnlyFriends(false);
+              }}
+            >
+              All
+            </button>
           </div>
         </div>
 
@@ -211,12 +250,12 @@ const Feed: React.FC = () => {
             alt="Profile"
             className="profile-pic"
           />
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <PostTextBox postText={postText} onChange={handleInputChange} />
+          <div style={{flex: 1, display: "flex", flexDirection: "column"}}>
+          <PostTextBox postText={postText} onChange={handleInputChange}/>
             {previewUrls.length > 0 && (
               <div className="preview-container">
                 {previewUrls.map((url, idx) => (
-                  <div key={idx} style={{ position: "relative", display: "inline-block" }}>
+                  <div key={idx} style={{position: "relative", display: "inline-block" }}>
                     <img src={url} alt={`Preview ${idx}`} className="preview-img" />
                     <button
                       onClick={() => handleRemoveImage(idx)}

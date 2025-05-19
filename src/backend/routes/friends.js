@@ -12,9 +12,9 @@ router.post('/request', async (req, res) => {
 
     try {
         const existing = await db.query(
-            `SELECT * FROM friend_requests 
-       WHERE (sender_id = $1 AND receiver_id = $2)
-          OR (sender_id = $2 AND receiver_id = $1)`,
+            `SELECT * FROM friend_requests
+             WHERE (sender_id = $1 AND receiver_id = $2)
+                OR (sender_id = $2 AND receiver_id = $1)`,
             [senderId, receiverId]
         );
 
@@ -22,8 +22,8 @@ router.post('/request', async (req, res) => {
             return res.status(409).json({ message: "Request already exists." });
 
         await db.query(
-            `INSERT INTO friend_requests (id, sender_id, receiver_id, status) 
-       VALUES ($1, $2, $3, 'pending')`,
+            `INSERT INTO friend_requests (id, sender_id, receiver_id, status)
+             VALUES ($1, $2, $3, 'pending')`,
             [uuidv4(), senderId, receiverId]
         );
 
@@ -40,9 +40,9 @@ router.get('/:userId', async (req, res) => {
 
     try {
         const result = await db.query(
-            `SELECT * FROM friend_requests 
-       WHERE (sender_id = $1 OR receiver_id = $1) 
-         AND status = 'accepted'`,
+            `SELECT * FROM friend_requests
+             WHERE (sender_id = $1 OR receiver_id = $1)
+               AND status = 'accepted'`,
             [userId]
         );
 
@@ -59,8 +59,8 @@ router.get('/requests/:userId', async (req, res) => {
 
     try {
         const result = await db.query(
-            `SELECT * FROM friend_requests 
-       WHERE receiver_id = $1 AND status = 'pending'`,
+            `SELECT * FROM friend_requests
+             WHERE receiver_id = $1 AND status = 'pending'`,
             [userId]
         );
 
@@ -77,9 +77,9 @@ router.post('/accept/:requestId', async (req, res) => {
 
     try {
         const result = await db.query(
-            `UPDATE friend_requests 
-       SET status = 'accepted', updated_at = NOW() 
-       WHERE id = $1 RETURNING *`,
+            `UPDATE friend_requests
+             SET status = 'accepted', updated_at = NOW()
+             WHERE id = $1 RETURNING *`,
             [requestId]
         );
 

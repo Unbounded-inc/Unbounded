@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "monitor": "node services/monitorConnections.js",
+    "dev": "concurrently \"pnpm start\" \"pnpm monitor\""
   },
+
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -23,5 +26,8 @@
     "pg": "^8.14.1",
     "pg-connection-string": "^2.7.0",
     "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }
