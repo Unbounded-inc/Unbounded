@@ -1,17 +1,51 @@
-import placeholder from "../../assets/placeholder.png";
 import { useMemo } from "react";
+import placeholder from "../../assets/placeholder.png";
+import { type User } from "../../lib/UserContext";
 
-function ChatSidebar({ userId, chats, onSelectChat, onNewGroup, onNewDirectMessage }) {
-  const deduplicated = useMemo(() => {
-    const map = new Map();
+interface ChatPreview {
+  roomId: string;
+  isGroup: boolean;
+  groupName?: string;
+  users?: User[];
+  user?: User;
+  members?: User[];
+}
+
+interface ChatSidebarProps {
+  userId: string;
+  chats: ChatPreview[];
+  onSelectChat: (chat: ChatPreview) => void;
+  onNewGroup: () => void;
+  onNewDirectMessage: () => void;
+}
+
+function ChatSidebar({
+                       userId,
+                       chats,
+                       onSelectChat,
+                       onNewGroup,
+                       onNewDirectMessage,
+                     }: ChatSidebarProps) {
+  const deduplicated = useMemo<ChatPreview[]>(() => {
+    const map = new Map<string, ChatPreview>();
 
     chats.forEach((chat) => {
-      const normalized = {
+      const normalized: ChatPreview = {
         ...chat,
         members: chat.members || (
-          chat.user ? [chat.user, { id: userId, username: "You" }] : []
+          chat.user
+            ? [
+              chat.user,
+              {
+                id: Number(userId),
+                username: "You",
+                email: "placeholder@example.com",
+                is_anonymous: true,
+              } as User
+            ]
+            : []
         ),
-        user: chat.user || chat.members?.find((m) => m.id !== userId),
+        user: chat.user || chat.members?.find((m) => m.id.toString() !== userId),
       };
       map.set(chat.roomId, normalized);
     });
@@ -47,7 +81,7 @@ function ChatSidebar({ userId, chats, onSelectChat, onNewGroup, onNewDirectMessa
             ) : (
               <div className="post-header">
                 <img
-                  src={chat.user?.profilePic || placeholder}
+                  src={chat.user?.profile_picture || placeholder}
                   alt="Profile"
                   className="profile-pic"
                 />

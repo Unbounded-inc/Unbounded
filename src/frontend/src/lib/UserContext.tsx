@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-interface User {
+export interface User {
   id: number;
   username: string;
   email: string;
@@ -10,11 +10,11 @@ interface User {
   is_anonymous: boolean;
   created_at?: string;
   updated_at?: string;
-  first_name?: string; // ✅ add this
-  last_name?: string;  // ✅ add this
+  first_name?: string;
+  last_name?: string;
   auth0_id?: string;
-  privacy?: string;     // (optional, add this if you’re using it in your form)
-  notifications?: boolean; // (same here)
+  privacy?: string;
+  notifications?: boolean;
 }
 
 

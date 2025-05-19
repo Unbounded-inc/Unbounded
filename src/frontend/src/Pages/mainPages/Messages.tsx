@@ -5,25 +5,11 @@ import Sidebar from "../../components/PageComponets/Sidebar";
 import MessageInput from "../../components/PageComponets/MessageInput";
 import CreateGroupModal from "../../components/PageComponets/CreateGroupModal";
 import CreateDMModal from "../../components/PageComponets/CreateDMModal";
-import placeholder from "../../assets/placeholder.png";
 import { useUser } from "../../lib/UserContext";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import ChatSidebar from "../../components/PageComponets/ChatSidebar";
+import { ChatPreview } from "../../lib/types";
 
-interface User {
-  id: string;
-  username: string;
-  profilePic?: string;
-}
-
-interface ChatPreview {
-  roomId: string;
-  isGroup: boolean;
-  groupName?: string;
-  users?: User[];
-  user?: User;
-  message_count?: number | string;
-}
 
 interface Message {
   id: string;
@@ -38,7 +24,7 @@ function normalizeAndDeduplicateChats(chats: ChatPreview[], currentUserId?: stri
   const uniqueChats: ChatPreview[] = [];
 
   chats.forEach((chat) => {
-    const userIds = chat.users?.map((u) => u.id).sort().join(",") || "";
+    const userIds = chat.users?.map((u) => u.id.toString()).sort().join(",") || "";
     const dedupeKey = `${chat.roomId}:${userIds}`;
 
     if (!seen.has(dedupeKey)) {
@@ -47,7 +33,7 @@ function normalizeAndDeduplicateChats(chats: ChatPreview[], currentUserId?: stri
         ...chat,
         users: chat.isGroup ? chat.users : undefined,
         user: !chat.isGroup
-          ? chat.user || chat.users?.find((u) => u.id !== currentUserId)
+          ? chat.user || chat.users?.find((u) => u.id.toString() !== currentUserId)
           : undefined,
       });
     }
@@ -61,29 +47,19 @@ const Messages: React.FC = () => {
   const [chats, setChats] = useState<ChatPreview[]>([]);
   const [lastCreatedRoomId, setLastCreatedRoomId] = useState<string | null>(null);
   const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
-  const [isNewChat, setIsNewChat] = useState(false);
-  const [newUsername, setNewUsername] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [showDMModal, setShowDMModal] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const socketRef = useRef<any>(null);
-
-  const selectedChat = chats.find((c) => c.roomId === selectedRoomId) || null;
-
-  const handleCloseChat = () => {
-    setSelectedRoomId(null);
-    setIsNewChat(false);
-    setNewUsername("");
-    setMessages([]);
-  };
+  const socketRef = useRef<Socket | null>(null);
 
   const loadChats = () => {
     if (!currentUser) return;
+
     fetch(`http://localhost:5001/api/chat-rooms/${currentUser.id}`)
       .then((res) => res.json())
-      .then((data) => {
-        const visible = data.filter((chat) => {
+      .then((data: ChatPreview[]) => {
+        const visible = data.filter((chat: ChatPreview) => {
           return (
             !chat.isGroup ||
             Number(chat.message_count) > 0 ||
@@ -91,58 +67,47 @@ const Messages: React.FC = () => {
           );
         });
 
-        // Sort by lastMessageAt descending (newest first)
-        visible.sort((a, b) => {
+        visible.sort((a: ChatPreview, b: ChatPreview) => {
           const aTime = new Date(a.lastMessageAt || 0).getTime();
           const bTime = new Date(b.lastMessageAt || 0).getTime();
           return bTime - aTime;
         });
 
-        console.log("Visible chats after filtering and sorting:", visible.map(c => c.roomId));
-
-        const deduped = normalizeAndDeduplicateChats(visible, currentUser.id);
+        const deduped = normalizeAndDeduplicateChats(visible, currentUser.id.toString());
         setChats(deduped);
       });
-
   };
 
   useEffect(() => {
     socketRef.current = io("http://localhost:5001", { withCredentials: true });
     return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
+      socketRef.current?.disconnect();
+      socketRef.current = null;
     };
   }, []);
 
   useEffect(() => {
     if (currentUser && socketRef.current) {
-      socketRef.current.emit("register-user", currentUser.id);
+      socketRef.current.emit("register-user", currentUser.id.toString());
     }
   }, [currentUser]);
 
   useEffect(() => {
-    if (!selectedRoomId || !socketRef.current) return;
-    socketRef.current.emit("join-room", selectedRoomId);
+    if (selectedRoomId && socketRef.current) {
+      socketRef.current.emit("join-room", selectedRoomId);
+    }
   }, [selectedRoomId]);
 
   useEffect(() => {
     const handler = (message: Message) => setMessages((prev) => [...prev, message]);
-    if (socketRef.current) {
-      socketRef.current.on("receive-message", handler);
-    }
+    socketRef.current?.on("receive-message", handler);
     return () => {
-      if (socketRef.current) {
-        socketRef.current.off("receive-message", handler);
-      }
+      socketRef.current?.off("receive-message", handler);
     };
   }, []);
 
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
@@ -153,9 +118,10 @@ const Messages: React.FC = () => {
 
   useEffect(() => {
     if (!selectedRoomId) return;
+
     fetch(`http://localhost:5001/api/messages/${selectedRoomId}`)
       .then((res) => res.json())
-      .then(setMessages);
+      .then((data: Message[]) => setMessages(data));
   }, [selectedRoomId]);
 
   return (
@@ -164,11 +130,10 @@ const Messages: React.FC = () => {
 
       <main className="feed-content" style={{ display: "flex", padding: 0 }}>
         <ChatSidebar
-          userId={currentUser?.id}
+          userId={currentUser?.id.toString() || ""}
           chats={chats}
-          onSelectChat={(chat) => {
+          onSelectChat={(chat: ChatPreview) => {
             setSelectedRoomId(chat.roomId);
-            setIsNewChat(false);
           }}
           onNewGroup={() => setShowGroupModal(true)}
           onNewDirectMessage={() => {
@@ -178,21 +143,15 @@ const Messages: React.FC = () => {
         />
 
         <div className="chat-main">
-          {selectedChat && (
-            <div className="chat-header">
-              {selectedChat.isGroup
-                ? selectedChat.groupName || "Group Chat"
-                : selectedChat.user?.username || "Direct Message"}
-            </div>
-          )}
-
-          {selectedRoomId ? (
+          {selectedRoomId && currentUser ? (
             <>
               <div className="chat-messages">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`post ${msg.sender_id === currentUser?.id ? "sent" : "received"}`}
+                    className={`post ${
+                      msg.sender_id.toString() === currentUser.id.toString() ? "sent" : "received"
+                    }`}
                   >
                     <div>{msg.content}</div>
                     <span className="timestamp">{new Date(msg.created_at).toLocaleString()}</span>
@@ -201,34 +160,36 @@ const Messages: React.FC = () => {
                 <div ref={bottomRef} />
               </div>
 
-              <MessageInput socket={socketRef.current} senderId={currentUser.id} roomId={selectedRoomId} />
+              <MessageInput
+                socket={socketRef.current}
+                senderId={currentUser.id.toString()}
+                roomId={selectedRoomId}
+              />
             </>
           ) : (
             <div className="empty-chat-msg">Select a chat to start messaging!</div>
           )}
-        </div>
 
+        </div>
       </main>
 
       {showGroupModal && currentUser && (
         <CreateGroupModal
           onClose={() => setShowGroupModal(false)}
-          currentUserId={currentUser.id}
-          onGroupCreated={(roomId) => {
-            console.log("Created new group:", roomId);
+          currentUserId={currentUser.id.toString()}
+          onGroupCreated={(roomId: string) => {
             setSelectedRoomId(roomId);
             setLastCreatedRoomId(roomId);
             setShowGroupModal(false);
-            // loadChats will be triggered automatically by useEffect on lastCreatedRoomId
           }}
         />
       )}
 
       {showDMModal && currentUser && (
         <CreateDMModal
-          currentUserId={currentUser.id}
+          currentUserId={currentUser.id.toString()}
           onClose={() => setShowDMModal(false)}
-          onChatStarted={(roomId) => {
+          onChatStarted={(roomId: string) => {
             setSelectedRoomId(roomId);
             setShowDMModal(false);
             loadChats();

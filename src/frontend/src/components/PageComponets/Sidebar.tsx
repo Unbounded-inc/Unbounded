@@ -1,25 +1,26 @@
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
 import "../../Styles/Sidebar.css";
-import { FiBook, FiHome, FiLogOut, FiMap, FiMessageSquare, FiSettings, FiUser, FiUsers } from "react-icons/fi";
+import {
+  FiBook, FiHome, FiLogOut, FiMap, FiMessageSquare,
+  FiSettings, FiUser, FiUsers
+} from "react-icons/fi";
 import ProfileIcon from "./ProfileIcon";
-import { useUser } from "../../lib/UserContext"; 
+import { useUser } from "../../lib/UserContext";
 
 interface SidebarProps {
   onHoverChange?: (hovering: boolean) => void;
 }
 
 function Sidebar({ onHoverChange }: SidebarProps) {
-  const navigate = useNavigate();
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
-  const { user, logout } = useUser(); 
+  const { user, logout } = useUser();
 
-  const handleLogout = async () => {
-    await logout();            
-    window.location.reload();   
+  const handleLogout = () => {
+    logout();
+    window.location.reload();
   };
-
 
   return (
     <aside
@@ -28,13 +29,11 @@ function Sidebar({ onHoverChange }: SidebarProps) {
         setIsHovered(true);
         onHoverChange?.(true);
       }}
-      
       onMouseLeave={() => {
         setIsHovered(false);
         onHoverChange?.(false);
       }}
     >
-      {/* Profile Section */}
       <div className="profile">
         <ProfileIcon isExpanded={isHovered} />
         {isHovered && user && (
@@ -45,7 +44,6 @@ function Sidebar({ onHoverChange }: SidebarProps) {
         )}
       </div>
 
-      {/* Navigation Links */}
       <nav className="nav-links">
         <Link to="/feed" className={`nav-item ${location.pathname === "/feed" ? "active" : ""}`}>
           <FiHome className="icon" /> {isHovered && <span className="text">Home Feed</span>}
@@ -70,7 +68,6 @@ function Sidebar({ onHoverChange }: SidebarProps) {
         </Link>
       </nav>
 
-      {/* Logout Button */}
       <div className="logout">
         <button className="logout-btn" onClick={handleLogout}>
           <FiLogOut className="icon" /> {isHovered && <span>Log Out</span>}

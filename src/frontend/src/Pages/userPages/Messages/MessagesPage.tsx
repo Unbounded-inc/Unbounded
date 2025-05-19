@@ -1,75 +1,54 @@
-import ChatSidebar from "../../../components/PageComponets/ChatSidebar";
-import Chat from "./chat";
-import { useUser } from "../../../lib/UserContext";
-import { useEffect, useState } from "react";
-import CreateGroupModal from "../../../components/PageComponets/CreateGroupModal";
+import { JSX, useState } from "react";
+import { useUser, type User } from "../../../lib/UserContext";
 import NewChatComponent from "../../../components/PageComponets/NewChatComponent";
+import Chat from "./chat";
+import CreateGroupModal from "../../../components/PageComponets/CreateGroupModal";
+import "../../../Styles/Messages.css";
 
-function MessagesPage() {
+interface ChatPreview {
+  roomId: string;
+  isGroup: boolean;
+  groupName?: string;
+  users?: User[];
+  user?: User;
+}
+
+function MessagesPage(): JSX.Element {
   const { user } = useUser();
-
-  const [activeChat, setActiveChat] = useState(null);
-  const [isNewChat, setIsNewChat] = useState(false);
-  const [showCreateGroup, setShowCreateGroup] = useState(false);
-  const [chatList, setChatList] = useState([]); // ✅ centralized chat state
-
-  useEffect(() => {
-    async function fetchChats() {
-      if (!user) return;
-      const res = await fetch(`http://localhost:5001/api/chat-rooms/${user.id}`);
-      const data = await res.json();
-
-      // Deduplicate if necessary
-      const seen = new Set();
-      const deduped = data.filter((chat) => {
-        if (seen.has(chat.roomId)) return false;
-        seen.add(chat.roomId);
-        return true;
-      });
-
-      setChatList(deduped);
-    }
-
-    fetchChats();
-  }, [user]);
-
-  if (!user) return <div>Loading...</div>;
+  const [activeChat, setActiveChat] = useState<ChatPreview | null>(null);
+  const [showCreateGroup, setShowCreateGroup] = useState<boolean>(false);
 
   return (
     <main className="feed-content" style={{ display: "flex", padding: 0 }}>
-      <ChatSidebar
-        userId={user.id}
-        chats={chatList}
-        onSelectChat={setActiveChat}
-        onNewGroup={() => setShowCreateGroup(true)}
-        onNewDirectMessage={() => {
-          setIsNewChat(true);
-          setActiveChat(null);
+      <NewChatComponent
+        currentUserId={(user?.id || "").toString()}
+        onSelectUser={(selectedUser: User) => {
+          setActiveChat({
+            roomId: selectedUser.id.toString(),
+            isGroup: false,
+            user: selectedUser,
+          });
         }}
+        onCreateGroup={() => setShowCreateGroup(true)}
       />
 
-      {isNewChat ? (
-        <NewChatComponent
-          currentUserId={user.id}
-          onSelectUser={(selectedUser) => {
-            setIsNewChat(false);
-            setActiveChat({ user: selectedUser, isGroup: false });
-          }}
+      {activeChat && user ? (
+        <Chat
+          currentUser={user}
+          receiverId={activeChat.user?.id?.toString() || activeChat.roomId}
         />
-      ) : activeChat ? (
-        <Chat currentUser={user} activeChat={activeChat} />
       ) : (
         <div className="chat-main empty-chat-msg">Select a chat to start messaging!</div>
       )}
 
-      {showCreateGroup && (
+      {showCreateGroup && user && (
         <CreateGroupModal
           onClose={() => setShowCreateGroup(false)}
-          onGroupCreated={(roomId) => {
+          onGroupCreated={(roomId: string) => {
             setShowCreateGroup(false);
             setActiveChat({ roomId, isGroup: true });
           }}
-          currentUserId={user.id}
+          currentUserId={user.id.toString()}
         />
       )}
     </main>

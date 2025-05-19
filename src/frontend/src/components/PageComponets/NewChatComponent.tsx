@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
+import { User } from "../../lib/UserContext";
 
-function NewChatComponent({ currentUserId, onSelectUser }) {
-  const [users, setUsers] = useState([]);
+interface NewChatComponentProps {
+  currentUserId: string;
+  onSelectUser: (user: User) => void;
+  onCreateGroup: () => void;
+}
+
+function NewChatComponent({ currentUserId, onSelectUser, onCreateGroup }: NewChatComponentProps) {
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     async function loadUsers() {
@@ -17,9 +24,10 @@ function NewChatComponent({ currentUserId, onSelectUser }) {
   return (
     <div className="chat-main">
       <h2>Start a New Chat</h2>
+      <button onClick={onCreateGroup}>+ New Group Chat</button>
       <ul>
         {users
-          .filter((user) => user.id !== currentUserId)
+          .filter((user) => user.id.toString() !== currentUserId)
           .map((user) => (
             <li key={user.id} onClick={() => onSelectUser(user)}>
               {user.username}
