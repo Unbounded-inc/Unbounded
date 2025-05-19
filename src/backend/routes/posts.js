@@ -135,9 +135,30 @@ router.post("/:postId/like", async (req, res) => {
 // Delete a post
 router.delete("/:id", async (req, res) => {
     const { id } = req.params;
+    const { user_id } = req.body;
+
     try {
+        const postResult = await db.query("SELECT user_id, image_urls FROM posts WHERE id = $1", [id]);
+        if (postResult.rows.length === 0) return res.status(404).json({ error: "Post not found" });
+
+        const post = postResult.rows[0];
+        if (post.user_id !== user_id) {
+            return res.status(403).json({ error: "Unauthorized to delete this post" });
+        }
+
+        const imageUrls = post.image_urls || [];
+
+        for (const url of imageUrls) {
+            const key = url.replace(`https://${process.env.DO_SPACE_BUCKET}.${process.env.DO_SPACE_ENDPOINT}/`, "");
+            console.log("Deleting from bucket:", key);
+            await s3.deleteObject({
+                Bucket: process.env.DO_SPACE_BUCKET,
+                Key: key,
+            }).promise();
+        }
+
         await db.query("DELETE FROM posts WHERE id = $1", [id]);
-        res.json({ message: "Post deleted" });
+        res.json({ message: "Post and images deleted" });
     } catch (err) {
         console.error("Failed to delete post:", err.message);
         res.status(500).json({ error: "Failed to delete post" });
