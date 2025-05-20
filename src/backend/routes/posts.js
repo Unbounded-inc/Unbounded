@@ -6,18 +6,16 @@ const multer = require("multer");
 const AWS = require("aws-sdk");
 require("dotenv").config();
 const { sendNotification } = require("../middleware/notify");
+const generateAlias = require("../services/aliasUtils");
 
-// Use memory storage for multer
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Configure AWS SDK for DigitalOcean Spaces
 const s3 = new AWS.S3({
     endpoint: new AWS.Endpoint(process.env.DO_SPACE_ENDPOINT),
     accessKeyId: process.env.DO_SPACE_KEY,
     secretAccessKey: process.env.DO_SPACE_SECRET,
 });
 
-// Create a post with optional image uploads (multiple)
 router.post("/", upload.array("images"), async (req, res) => {
     const { user_id, content, is_anonymous } = req.body;
     const files = req.files || [];
@@ -43,11 +41,18 @@ router.post("/", upload.array("images"), async (req, res) => {
             imageUrls.push(uploadResult.Location);
         }
 
+        const anonFlag = is_anonymous === true || is_anonymous === "true";
+        const alias = anonFlag ? generateAlias() : null;
+
+        console.log("incoming is_anonymous:", is_anonymous);
+        console.log("parsed anonFlag:", anonFlag);
+        console.log("generated alias:", alias);
+
         const result = await db.query(
-            `INSERT INTO posts (id, user_id, content, image_urls, is_anonymous, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-                 RETURNING *`,
-            [uuidv4(), user_id, content, JSON.stringify(imageUrls), is_anonymous === "true"]
+            `INSERT INTO posts (id, user_id, content, image_urls, is_anonymous, anonymous_alias, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+             RETURNING *`,
+            [uuidv4(), user_id, content, JSON.stringify(imageUrls), anonFlag, alias]
         );
 
         res.status(201).json({ message: "Post created", post: result.rows[0] });
@@ -62,13 +67,16 @@ router.get("/", async (req, res) => {
         const result = await db.query(`
             SELECT
                 posts.*,
-                users.username,
+                CASE
+                    WHEN posts.is_anonymous THEN posts.anonymous_alias
+                    ELSE users.username
+                END AS display_name,
                 users.profile_picture,
                 COALESCE(COUNT(likes.id), 0) AS like_count,
                 ARRAY_AGG(likes.user_id) FILTER (WHERE likes.user_id IS NOT NULL) AS liked_by_ids
             FROM posts
-                     JOIN users ON posts.user_id = users.id
-                     LEFT JOIN likes ON likes.post_id = posts.id
+            JOIN users ON posts.user_id = users.id
+            LEFT JOIN likes ON likes.post_id = posts.id
             GROUP BY posts.id, users.id
             ORDER BY posts.created_at DESC
         `);
@@ -167,9 +175,15 @@ router.get("/friends/:userId", async (req, res) => {
 
     try {
         const query = `
-            SELECT posts.*, users.username, users.profile_picture,
-                   ARRAY_AGG(likes.user_id) AS liked_by_ids,
-                   COUNT(likes.user_id) AS like_count
+            SELECT
+                posts.*,
+                CASE
+                    WHEN posts.is_anonymous THEN posts.anonymous_alias
+                    ELSE users.username
+                    END AS display_name,
+                users.profile_picture,
+                ARRAY_AGG(likes.user_id) AS liked_by_ids,
+                COUNT(likes.user_id) AS like_count
             FROM posts
                      JOIN users ON users.id = posts.user_id
                      LEFT JOIN likes ON likes.post_id = posts.id

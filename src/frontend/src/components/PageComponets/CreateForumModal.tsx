@@ -13,14 +13,14 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({
                                                              setShowModal,
                                                              addForum,
                                                            }) => {
-  const { user } = useUser(); // ✅ use context
+  const { user } = useUser();
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!showModal || !user) return null; // ✅ must be logged in
+  if (!showModal || !user) return null;
 
   const handleAddTag = () => {
     if (tagInput.trim() && tags.length < 3) {
@@ -35,7 +35,6 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({
 
   const handleSubmit = async () => {
     if (!title.trim() || !body.trim()) return;
-
     setIsSubmitting(true);
 
     try {
@@ -49,7 +48,7 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({
           description: body,
           tags,
           created_by: user.id,
-          is_anonymous: false,
+          is_anonymous: user.is_anonymous,
         }),
       });
 
@@ -57,7 +56,6 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({
 
       const newForum = await res.json();
 
-      // ✅ add full user info to new forum object
       addForum({
         ...newForum,
         created_by_user: {
@@ -107,7 +105,11 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({
               className="forum-create-input"
               style={{ flex: 1 }}
             />
-            <button type="button" className="forum-create-add-tag-btn" onClick={handleAddTag}>
+            <button
+              type="button"
+              className="forum-create-add-tag-btn"
+              onClick={handleAddTag}
+            >
               Add
             </button>
           </div>
@@ -121,8 +123,24 @@ const CreateForumModal: React.FC<CreateForumModalProps> = ({
             ))}
           </div>
 
+          {user.is_anonymous && (
+            <p
+              style={{
+                fontStyle: "italic",
+                color: "#777",
+                marginTop: "0.5rem",
+                marginBottom: "1rem",
+              }}
+            >
+              You are posting anonymously
+            </p>
+          )}
+
           <div className="forum-create-buttons">
-            <button className="forum-create-cancel-btn" onClick={() => setShowModal(false)}>
+            <button
+              className="forum-create-cancel-btn"
+              onClick={() => setShowModal(false)}
+            >
               Cancel
             </button>
             <button

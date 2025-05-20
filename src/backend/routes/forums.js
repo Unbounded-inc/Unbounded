@@ -1,6 +1,7 @@
 const express = require("express");
 const { v4: uuidv4 } = require("uuid");
 const pool = require("../config/db");
+const generateAlias = require("../services/aliasUtils");
 
 const router = express.Router();
 
@@ -15,23 +16,31 @@ router.post("/", async (req, res) => {
   try {
     const id = uuidv4();
     const created_at = new Date();
+    const alias = is_anonymous ? generateAlias() : null;
 
     const insertResult = await pool.query(
-        `INSERT INTO forums (id, title, description, created_by, tags, is_anonymous, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO forums (id, title, description, created_by, tags, is_anonymous, anonymous_alias, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-        [id, title, description, created_by, tags, is_anonymous, created_at]
+        [id, title, description, created_by, tags, is_anonymous, alias, created_at]
     );
 
     const forum = insertResult.rows[0];
 
-    // Fetch user info for the newly created forum
-    const userResult = await pool.query(
-        `SELECT id, username, profile_picture FROM users WHERE id = $1`,
-        [created_by]
-    );
+    // Fetch user info (real or alias)
+    if (is_anonymous) {
+      forum.created_by_user = {
+        username: alias,
+        profile_picture: null
+      };
+    } else {
+      const userResult = await pool.query(
+          `SELECT id, username, profile_picture FROM users WHERE id = $1`,
+          [created_by]
+      );
+      forum.created_by_user = userResult.rows[0];
+    }
 
-    forum.created_by_user = userResult.rows[0];
     res.status(201).json(forum);
   } catch (err) {
     console.error("Error creating forum:", err);
@@ -39,17 +48,16 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Get all forums with user info
+// Get all forums with user info or alias
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
         forums.*,
-        json_build_object(
-          'id', users.id,
-          'username', users.username,
-          'profile_picture', users.profile_picture
-        ) AS created_by_user
+        CASE 
+          WHEN forums.is_anonymous THEN json_build_object('username', forums.anonymous_alias, 'profile_picture', NULL)
+          ELSE json_build_object('id', users.id, 'username', users.username, 'profile_picture', users.profile_picture)
+        END AS created_by_user
       FROM forums
       JOIN users ON forums.created_by = users.id
       ORDER BY forums.created_at DESC
@@ -65,7 +73,7 @@ router.get("/", async (req, res) => {
 // Add a comment to a forum
 router.post("/:forumId/comments", async (req, res) => {
   const { forumId } = req.params;
-  const { user_id, content } = req.body;
+  const { user_id, content, is_anonymous = false } = req.body;
 
   if (!user_id || !content) {
     return res.status(400).json({ error: "Missing user_id or content" });
@@ -74,12 +82,13 @@ router.post("/:forumId/comments", async (req, res) => {
   try {
     const id = uuidv4();
     const created_at = new Date();
+    const alias = is_anonymous ? generateAlias() : null;
 
     const insertResult = await pool.query(
-        `INSERT INTO forum_threads (id, forum_id, user_id, content, created_at)
-       VALUES ($1, $2, $3, $4, $5)
+        `INSERT INTO forum_threads (id, forum_id, user_id, content, is_anonymous, anonymous_alias, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-        [id, forumId, user_id, content, created_at]
+        [id, forumId, user_id, content, is_anonymous, alias, created_at]
     );
 
     res.status(201).json(insertResult.rows[0]);
@@ -89,7 +98,7 @@ router.post("/:forumId/comments", async (req, res) => {
   }
 });
 
-// Get comments for a forum with user info
+// Get comments for a forum
 router.get("/:forumId/comments", async (req, res) => {
   const { forumId } = req.params;
 
@@ -97,11 +106,10 @@ router.get("/:forumId/comments", async (req, res) => {
     const result = await pool.query(
         `SELECT 
          forum_threads.*,
-         json_build_object(
-           'id', users.id,
-           'username', users.username,
-           'profile_picture', users.profile_picture
-         ) AS user
+         CASE 
+           WHEN forum_threads.is_anonymous THEN json_build_object('username', forum_threads.anonymous_alias, 'profile_picture', NULL)
+           ELSE json_build_object('id', users.id, 'username', users.username, 'profile_picture', users.profile_picture)
+         END AS user
        FROM forum_threads
        JOIN users ON forum_threads.user_id = users.id
        WHERE forum_threads.forum_id = $1
@@ -116,6 +124,7 @@ router.get("/:forumId/comments", async (req, res) => {
   }
 });
 
+// Delete a forum
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -126,6 +135,5 @@ router.delete("/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to delete forum" });
   }
 });
-
 
 module.exports = router;

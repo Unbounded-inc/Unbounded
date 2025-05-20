@@ -106,7 +106,7 @@ const Profile: React.FC = () => {
         first_name: localUser.first_name,
         last_name: localUser.last_name,
         privacy: localUser.privacy,
-        anonymity: localUser.is_anonymous,
+        is_anonymous: localUser.is_anonymous,
         notifications: localUser.notifications,
       });
 

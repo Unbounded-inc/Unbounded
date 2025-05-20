@@ -8,7 +8,7 @@ import heart from "../../assets/like.png";
 import comment from "../../assets/comments.png";
 import share from "../../assets/shares.png";
 import PostTextBox from "../../components/PageComponets/PostTextBox";
-import NotificationSidebar from "../../components/PageComponets/NotificationSidebar.tsx";
+import NotificationSidebar from "../../components/PageComponets/NotificationSidebar";
 
 const Feed: React.FC = () => {
   const { user } = useUser();
@@ -85,6 +85,7 @@ const Feed: React.FC = () => {
       post_id: selectedPost.id,
       user_id: user.id,
       content: commentText,
+      is_anonymous: user.is_anonymous,
     };
 
     try {
@@ -143,7 +144,7 @@ const Feed: React.FC = () => {
     const formData = new FormData();
     formData.append("user_id", user.id.toString());
     formData.append("content", postText);
-    formData.append("is_anonymous", "false");
+    formData.append("is_anonymous", user.is_anonymous.toString());
 
     if (fileInputRef.current?.files) {
       Array.from(fileInputRef.current.files).forEach((file) => {
@@ -251,7 +252,12 @@ const Feed: React.FC = () => {
             className="profile-pic"
           />
           <div style={{flex: 1, display: "flex", flexDirection: "column"}}>
-          <PostTextBox postText={postText} onChange={handleInputChange}/>
+            {user?.is_anonymous && (
+              <p style={{ fontStyle: "italic", color: "#777", marginBottom: "0.5rem" }}>
+                You are posting anonymously
+              </p>
+            )}
+            <PostTextBox postText={postText} onChange={handleInputChange}/>
             {previewUrls.length > 0 && (
               <div className="preview-container">
                 {previewUrls.map((url, idx) => (
@@ -292,10 +298,14 @@ const Feed: React.FC = () => {
         {posts.map((post) => (
           <div className="post" key={post.id}>
             <div className="post-header">
-              <img src={post.profile_picture || placeholder} alt="Profile" className="profile-pic" />
+              <img
+                src={post.is_anonymous ? placeholder : post.profile_picture}
+                alt="Profile"
+                className="profile-pic"
+              />
               <div className="post-user">
-                <strong>{post.username}</strong>
-                <p>@{post.username}</p>
+                <strong>{post.display_name}</strong>
+                {!post.is_anonymous && <p>@{post.display_name}</p>}
               </div>
             </div>
             <p className="post-content">{post.content}</p>
@@ -327,16 +337,16 @@ const Feed: React.FC = () => {
         <div className="tweet-modal-overlay">
           <div className="tweet-modal-content">
             <h2>{selectedPost.content}</h2>
-            <p className="tweet-modal-text">@{selectedPost.username}</p>
+            <p className="tweet-modal-text">@{selectedPost.display_name}</p>
             {Array.isArray(selectedPost.image_urls) && selectedPost.image_urls.length > 0 && (
               <div className="post-images">
                 {selectedPost.image_urls.map((url: string, idx: number) => (
-                  <img key={idx} src={url} alt={`Post Detail ${idx}`} className="post-img" />
+                  <img key={idx} src={url} alt={`Post Detail ${idx}`} className="post-img"/>
                 ))}
               </div>
             )}
             <div className="tweet-modal-comment-box">
-              <img src={user?.profile_picture || placeholder} alt="profile" className="profile-pic" />
+              <img src={user?.profile_picture || placeholder} alt="profile" className="profile-pic"/>
               <textarea
                 className="tweet-modal-textarea"
                 placeholder="Write a comment..."
@@ -360,16 +370,30 @@ const Feed: React.FC = () => {
             {comments.length === 0 ? (
               <p style={{ marginTop: "1rem", color: "#777" }}>No comments yet.</p>
             ) : (
-              comments.map((cmt) => (
-                <div key={cmt.id} className="comment">
+              comments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="comment"
+                >
                   <img
-                    src={cmt.profile_picture || placeholder}
+                    src={
+                      comment.is_anonymous
+                        ? placeholder
+                        : comment.profile_picture || placeholder
+                    }
                     alt="pfp"
                     className="profile-pic"
+                    style={{ width: "40px", height: "40px", borderRadius: "50%" }}
                   />
                   <div>
-                    <strong>{cmt.username}</strong>
-                    <p>{cmt.content}</p>
+                    <p style={{ margin: 0, fontWeight: 500, color: "#333" }}>
+                      {comment.is_anonymous
+                        ? comment.anonymous_alias
+                        : comment.display_name}
+                    </p>
+                    <p style={{ margin: 0, color: "#444", fontSize: "0.95rem" }}>
+                      {comment.content}
+                    </p>
                   </div>
                 </div>
               ))

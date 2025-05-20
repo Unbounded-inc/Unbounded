@@ -1,7 +1,7 @@
-// 👇 Only used in dev mode
+//  Only used in dev mode
 const API_BASE = import.meta.env.PROD ? "" : "http://localhost:5001";
 
-// 🔁 Shared User type
+//  Shared User type
 export interface User {
   id: string;
   username: string;
@@ -9,10 +9,10 @@ export interface User {
   profile_picture: string;
   privacy: string;
   notifications: boolean;
-  anonymity: boolean;
+  is_anonymous?: boolean;
 }
 
-// 🔐 Login
+//  Login
 export const login = (email: string, password: string) =>
   fetch(`${API_BASE}/auth/login`, {
     method: "POST",
@@ -20,7 +20,7 @@ export const login = (email: string, password: string) =>
     body: JSON.stringify({ email, password }),
   });
 
-// 👤 Get user(s)
+//  Get user(s)
 export const getUser = async (): Promise<{ users: User[] }> => {
   const res = await fetch(`${API_BASE}/api/users/users`);
   if (!res.ok) {
@@ -36,7 +36,7 @@ export const updateUser = async (
     last_name?: string;
     bio?: string;
     privacy?: string;
-    anonymity?: boolean;
+    is_anonymous?: boolean;
     profile_picture?: string;
     notifications?: boolean;
     username: string;
