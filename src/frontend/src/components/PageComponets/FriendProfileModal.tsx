@@ -1,5 +1,5 @@
 import React from "react";
-import "../../Styles/FriendProfileModa.css";
+import "../../Styles/friends/FriendProfileModa.css";
 import placeholder from "../../assets/placeholder.png";
 
 interface FriendProfileModalProps {

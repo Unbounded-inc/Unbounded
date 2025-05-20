@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { socket } from "../../lib/socket";
-import "../../Styles/Notifications.css";
+import "../../Styles/noti/Notifications.css";
 
 interface Notification {
   id: string;

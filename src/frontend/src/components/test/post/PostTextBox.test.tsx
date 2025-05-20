@@ -11,7 +11,7 @@ describe("PostTextBox", () => {
   });
 
   it("calls onChange when text is entered", () => {
-    const handleChange = vi.fn(); // ✅ Vitest's mock function
+    const handleChange = vi.fn();
     render(<PostTextBox postText="" onChange={handleChange} />);
     const input = screen.getByPlaceholderText(/share something.../i);
     fireEvent.change(input, { target: { value: "Hello Unbounded!" } });

@@ -129,7 +129,7 @@ button {
 }
 
 .error {
-  color: red; /* or any color that contrasts with the background */
+  color: red;
   font-weight: bold;
   margin-top: 5px;
   text-align: center;

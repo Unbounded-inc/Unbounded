@@ -1,10 +1,9 @@
-// src/components/test/main/Feed.test.tsx
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import Feed from '../../../Pages/mainPages/Feed';
 
-// ✅ Mock useUser for logged-in state
+// Mock useUser for logged-in state
 vi.mock('../../../lib/UserContext', () => {
   return {
     useUser: () => ({

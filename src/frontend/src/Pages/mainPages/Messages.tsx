@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
-import "../../Styles/Feed.css";
-import "../../Styles/Messages.css";
+import "../../Styles/feed/Feed.css";
+import "../../Styles/messages/Messages.css";
 import Sidebar from "../../components/PageComponets/Sidebar";
 import MessageInput from "../../components/PageComponets/MessageInput";
 import CreateGroupModal from "../../components/PageComponets/CreateGroupModal";

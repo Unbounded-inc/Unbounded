@@ -43,7 +43,6 @@ router.post("/login", async (req, res) => {
             return res.status(403).json({ error: "Auth0 login succeeded, but user not found in DB" });
         }
 
-        // ✅ Set secure session cookie
         res.cookie("token", idToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === "production",
@@ -114,7 +113,7 @@ router.post("/logout", (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        path: "/", // ✅ This makes sure the cookie path matches
+        path: "/",
     });
     res.json({ message: "Logged out" });
 });

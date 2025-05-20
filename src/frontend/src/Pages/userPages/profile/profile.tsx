@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../../../Styles/profile.css";
+import "../../../Styles/profile/profile.css";
 import { updateUser } from "../../../lib/api";
 import { useUser } from "../../../lib/UserContext";
 import Sidebar from "../../../components/PageComponets/Sidebar.tsx";

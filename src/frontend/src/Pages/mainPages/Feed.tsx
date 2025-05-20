@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useUser } from "../../lib/UserContext";
-import "../../Styles/Feed.css";
+import "../../Styles/feed/Feed.css";
 import Sidebar from "../../components/PageComponets/Sidebar";
 import placeholder from "../../assets/placeholder.png";
 import icon from "../../assets/icon.png";

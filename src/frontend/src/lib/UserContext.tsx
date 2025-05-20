@@ -10,26 +10,26 @@ interface User {
   is_anonymous: boolean;
   created_at?: string;
   updated_at?: string;
-  first_name?: string; // ✅ add this
-  last_name?: string;  // ✅ add this
+  first_name?: string;
+  last_name?: string;
   auth0_id?: string;
-  privacy?: string;     // (optional, add this if you’re using it in your form)
-  notifications?: boolean; // (same here)
+  privacy?: string;
+  notifications?: boolean;
 }
 
 
 interface UserContextType {
   user: User | null;
   loading: boolean;
-  fetchUser: () => Promise<void>;   // ✅ added here
-  refreshUser: () => void;          // ✅ keep for compatibility (optional)
+  fetchUser: () => Promise<void>;
+  refreshUser: () => void;
   logout: () => void;
 }
 
 const UserContext = createContext<UserContextType>({
   user: null,
   loading: true,
-  fetchUser: async () => {},       // ✅ default fallback
+  fetchUser: async () => {},
   refreshUser: () => {},
   logout: () => {},
 });

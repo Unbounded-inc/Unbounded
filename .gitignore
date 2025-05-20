@@ -25,6 +25,9 @@ yarn-error.log*
 # Ignore environment variables
 src/backend/.env
 
+#ignore .dbml files
+*.dbml
+
 src/backend/uploads
 
 ### IntelliJ IDEA ###

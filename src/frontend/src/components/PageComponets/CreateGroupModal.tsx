@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "../../Styles/Messages.css";
+import "../../Styles/messages/Messages.css";
 
 interface User {
   id: string;

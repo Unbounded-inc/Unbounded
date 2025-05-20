@@ -2,7 +2,7 @@ import Sidebar from "../../components/PageComponets/Sidebar";
 import "leaflet/dist/leaflet.css";
 import lolImage from "../../assets/lol.jpg";
 import CreateEventModal from "../../components/PageComponets/CreateEventModal.tsx";
-import "../../Styles/Events.css";
+import "../../Styles/events/Events.css";
 import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -182,7 +182,7 @@ const Events: React.FC = () => {
                       }}
                       aria-label="Delete event"
                     >
-                      ❌
+                      x
                     </button>
 
                     <img

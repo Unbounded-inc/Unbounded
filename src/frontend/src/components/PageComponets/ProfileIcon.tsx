@@ -1,4 +1,4 @@
-import "../../Styles/ProfileIcon.css";
+import "../../Styles/profile/ProfileIcon.css";
 import UB_logo from "../../assets/UB_whiteclear.png";
 import defaultProfilePic from "../../assets/greenStec.png";
 import { useUser } from "../../lib/UserContext";

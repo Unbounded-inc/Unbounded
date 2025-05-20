@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../../Styles/CreateForumModal.css";
+import "../../Styles/forum/CreateForumModal.css";
 import { useUser } from "../../lib/UserContext";
 
 interface CreateForumModalProps {
