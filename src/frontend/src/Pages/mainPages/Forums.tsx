@@ -53,12 +53,11 @@ const Forums: React.FC = () => {
     try {
       const res = await fetch(`http://localhost:5001/api/forums/${selectedForum.id}/comments`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           user_id: user.id,
           content: commentText,
+          is_anonymous: user.is_anonymous,
         }),
       });
 
@@ -66,7 +65,6 @@ const Forums: React.FC = () => {
 
       const newComment = await res.json();
 
-      // Add the user's info manually for immediate display
       setComments((prev) => [
         ...prev,
         {
@@ -75,6 +73,8 @@ const Forums: React.FC = () => {
             username: user.username,
             profile_picture: user.profile_picture,
           },
+          is_anonymous: user.is_anonymous,
+          anonymous_alias: newComment.anonymous_alias,
         },
       ]);
 
@@ -104,11 +104,7 @@ const Forums: React.FC = () => {
         <h2 className="friends-title">Community Forums</h2>
 
         <div className="friends-search-bar">
-          <input
-            type="text"
-            placeholder="Search forum threads..."
-            className="friends-search-input"
-          />
+          <input type="text" placeholder="Search forum threads..." className="friends-search-input" />
           <button className="add-friend-btn" onClick={() => setShowCreateModal(true)}>
             Create
           </button>
@@ -122,15 +118,18 @@ const Forums: React.FC = () => {
               <div key={forum.id} className="post1" onClick={() => handleOpenForum(forum)}>
                 <div className="post-header">
                   <img
-                    src={forum.created_by_user?.profile_picture || placeholder}
+                    src={forum.is_anonymous ? placeholder : forum.created_by_user?.profile_picture || placeholder}
                     alt="pfp"
                     className="profile-pic"
                   />
                   <div className="post-user">
                     <strong>{forum.title}</strong>
                     <p>
-                      Posted by @{forum.created_by_user?.username || "user"} on{" "}
-                      {formatDate(forum.created_at)}
+                      Posted by{" "}
+                      {forum.is_anonymous
+                        ? forum.anonymous_alias
+                        : `@${forum.created_by_user?.username || "user"}`}{" "}
+                      on {formatDate(forum.created_at)}
                     </p>
                   </div>
                 </div>
@@ -161,8 +160,11 @@ const Forums: React.FC = () => {
               {selectedForum.title}
             </h2>
             <p className="forum-author">
-              Posted by @{selectedForum.created_by_user?.username || "user"} on{" "}
-              {formatDate(selectedForum.created_at)}
+              Posted by{" "}
+              {selectedForum.is_anonymous
+                ? selectedForum.anonymous_alias
+                : `@${selectedForum.created_by_user?.username || "user"}`}{" "}
+              on {formatDate(selectedForum.created_at)}
             </p>
 
             <div className="forum-body" style={{ marginBottom: "1.5rem" }}>
@@ -178,6 +180,12 @@ const Forums: React.FC = () => {
                 onChange={(e) => setCommentText(e.target.value)}
               />
             </div>
+
+            {user?.is_anonymous && (
+              <p style={{ fontStyle: "italic", color: "#777", marginBottom: "1rem" }}>
+                You are commenting anonymously
+              </p>
+            )}
 
             <div className="modal-buttons">
               <button className="modal-button-cancel" onClick={() => setSelectedForum(null)}>Close</button>
@@ -198,13 +206,13 @@ const Forums: React.FC = () => {
                   marginBottom: "1rem"
                 }}>
                   <img
-                    src={c.user?.profile_picture || placeholder}
+                    src={c.is_anonymous ? placeholder : c.user?.profile_picture || placeholder}
                     alt="comment user"
                     style={{ width: "40px", height: "40px", borderRadius: "50%" }}
                   />
                   <div>
                     <p style={{ margin: 0, fontWeight: 500, color: "#333" }}>
-                      @{c.user?.username || "user"}
+                      {c.is_anonymous ? c.anonymous_alias : `@${c.user?.username || "user"}`}
                     </p>
                     <p style={{ margin: 0, color: "#444", fontSize: "0.95rem" }}>{c.content}</p>
                   </div>
@@ -220,8 +228,6 @@ const Forums: React.FC = () => {
         setShowModal={setShowCreateModal}
         addForum={handleAddForum}
       />
-
-
     </div>
   );
 };
