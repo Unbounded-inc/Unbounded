@@ -85,6 +85,7 @@ const Feed: React.FC = () => {
       post_id: selectedPost.id,
       user_id: user.id,
       content: commentText,
+      is_anonymous: user.is_anonymous,
     };
 
     try {
@@ -367,18 +368,32 @@ const Feed: React.FC = () => {
             </div>
 
             {comments.length === 0 ? (
-              <p style={{marginTop: "1rem", color: "#777"}}>No comments yet.</p>
+              <p style={{ marginTop: "1rem", color: "#777" }}>No comments yet.</p>
             ) : (
-              comments.map((cmt) => (
-                <div key={cmt.id} className="comment">
+              comments.map((comment) => (
+                <div
+                  key={comment.id}
+                  className="comment"
+                >
                   <img
-                    src={cmt.profile_picture || placeholder}
+                    src={
+                      comment.is_anonymous
+                        ? placeholder
+                        : comment.profile_picture || placeholder
+                    }
                     alt="pfp"
                     className="profile-pic"
+                    style={{ width: "40px", height: "40px", borderRadius: "50%" }}
                   />
                   <div>
-                    <strong>{cmt.display_name}</strong>
-                    <p>{cmt.content}</p>
+                    <p style={{ margin: 0, fontWeight: 500, color: "#333" }}>
+                      {comment.is_anonymous
+                        ? comment.anonymous_alias
+                        : comment.display_name}
+                    </p>
+                    <p style={{ margin: 0, color: "#444", fontSize: "0.95rem" }}>
+                      {comment.content}
+                    </p>
                   </div>
                 </div>
               ))
