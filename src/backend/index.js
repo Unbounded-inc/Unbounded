@@ -8,6 +8,15 @@ const pool = require("./config/db");
 const cookieParser = require("cookie-parser");
 const { initSocketIO } = require("./middleware/notify");
 
+process.on("uncaughtException", (err) => {
+  console.error("Uncaught exception:", err);
+});
+
+process.on("unhandledRejection", (err) => {
+  console.error("Unhandled rejection:", err);
+});
+
+
 // Route imports
 const chatRoutes = require("./routes/chats");
 const authRoutes = require("./routes/auth");
@@ -19,6 +28,7 @@ const commentRoutes = require("./routes/comments");
 const eventRoutes = require("./routes/events");
 const friendsRoutes = require("./routes/friends");
 const notificationRoutes = require("./routes/notifications");
+const communitiesRouter = require("./routes/communities");
 
 const app = express();
 const server = http.createServer(app);
@@ -62,7 +72,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/friends", friendsRoutes);
 app.use("/uploads", express.static("uploads"));
 app.use("/api/notifications", notificationRoutes);
-
+app.use("/api/communities", communitiesRouter);
 // Socket.io setup
 const userSocketMap = {};
 
