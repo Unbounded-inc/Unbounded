@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../../../Styles/Settings.css";
+import "../../../Styles/profile/Settings.css";
 import Sidebar from "../../../components/PageComponets/Sidebar";
 import { useUser } from "../../../lib/UserContext";
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "../../lib/UserContext";
 import Sidebar from "../../components/PageComponets/Sidebar";
-import "../../Styles/MyPosts.css";
+import "../../Styles/feed/MyPosts.css";
 import logo from "../../assets/whitelogo.png";
 
 const MyPosts: React.FC = () => {

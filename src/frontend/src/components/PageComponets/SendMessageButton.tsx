@@ -1,5 +1,5 @@
 import React from "react";
-import "../../Styles/Messages.css"; 
+import "../../Styles/messages/Messages.css";
 
 interface SendMessageProps {
   onClick?: () => void;

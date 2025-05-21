@@ -1,5 +1,5 @@
 import React from "react";
-import "../../Styles/Feed.css";
+import "../../Styles/feed/Feed.css";
 
 interface PostUploadProps {
   onClick?: () => void;

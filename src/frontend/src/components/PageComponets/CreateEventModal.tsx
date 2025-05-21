@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../../Styles/CreateEventModal.css";
+import "../../Styles/events/CreateEventModal.css";
 
 interface CreateEventModalProps {
   showModal: boolean;

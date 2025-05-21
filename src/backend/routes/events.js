@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db"); // Your PostgreSQL connection
+const db = require("../config/db");
 
 //  Create a new event
 router.post("/add", async (req, res) => {
@@ -18,8 +18,8 @@ router.post("/add", async (req, res) => {
 
         res.status(201).json({ message: "Event created", event: result.rows[0] });
     } catch (err) {
-        console.error("❌ Event creation failed:", err);
-        console.error("🔥 Stack trace:", err.stack);
+        console.error("Event creation failed:", err);
+        console.error("Stack trace:", err.stack);
         res.status(500).json({ error: "Failed to create event", details: err.message });
     }
 });

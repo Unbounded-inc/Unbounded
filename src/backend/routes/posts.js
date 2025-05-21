@@ -17,7 +17,7 @@ const s3 = new AWS.S3({
 });
 
 router.post("/", upload.array("images"), async (req, res) => {
-    const { user_id, content, is_anonymous } = req.body;
+    const { user_id, content, is_anonymous, community_id } = req.body;
     const files = req.files || [];
 
     if (!user_id || !content) {
@@ -49,10 +49,19 @@ router.post("/", upload.array("images"), async (req, res) => {
         console.log("generated alias:", alias);
 
         const result = await db.query(
-            `INSERT INTO posts (id, user_id, content, image_urls, is_anonymous, anonymous_alias, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-             RETURNING *`,
-            [uuidv4(), user_id, content, JSON.stringify(imageUrls), anonFlag, alias]
+            `INSERT INTO posts (
+                id, user_id, content, image_urls, is_anonymous, anonymous_alias, community_id, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+                 RETURNING *`,
+            [
+                uuidv4(),
+                user_id,
+                content,
+                JSON.stringify(imageUrls),
+                anonFlag,
+                alias,
+                community_id || null,
+            ]
         );
 
         res.status(201).json({ message: "Post created", post: result.rows[0] });
@@ -63,24 +72,38 @@ router.post("/", upload.array("images"), async (req, res) => {
 });
 
 router.get("/", async (req, res) => {
-    try {
-        const result = await db.query(`
-            SELECT
-                posts.*,
-                CASE
-                    WHEN posts.is_anonymous THEN posts.anonymous_alias
-                    ELSE users.username
-                END AS display_name,
-                users.profile_picture,
-                COALESCE(COUNT(likes.id), 0) AS like_count,
-                ARRAY_AGG(likes.user_id) FILTER (WHERE likes.user_id IS NOT NULL) AS liked_by_ids
-            FROM posts
-            JOIN users ON posts.user_id = users.id
-            LEFT JOIN likes ON likes.post_id = posts.id
-            GROUP BY posts.id, users.id
-            ORDER BY posts.created_at DESC
-        `);
+    const { communityId } = req.query;
 
+    let query = `
+        SELECT
+            posts.*,
+            communities.name AS community_name,
+            CASE
+                WHEN posts.is_anonymous THEN posts.anonymous_alias
+                ELSE users.username
+                END AS display_name,
+            users.profile_picture,
+            COALESCE(COUNT(likes.id), 0) AS like_count,
+            ARRAY_AGG(likes.user_id) FILTER (WHERE likes.user_id IS NOT NULL) AS liked_by_ids
+        FROM posts
+                 JOIN users ON posts.user_id = users.id
+                 LEFT JOIN communities ON posts.community_id = communities.id
+                 LEFT JOIN likes ON likes.post_id = posts.id
+    `;
+
+    const values = [];
+    if (communityId) {
+        query += ` WHERE posts.community_id = $1`;
+        values.push(communityId);
+    }
+
+    query += `
+    GROUP BY posts.id, users.id, communities.name
+    ORDER BY posts.created_at DESC
+  `;
+
+    try {
+        const result = await db.query(query, values);
         res.json({ posts: result.rows });
     } catch (err) {
         console.error("Failed to fetch posts:", err.message);
@@ -205,6 +228,40 @@ router.get("/friends/:userId", async (req, res) => {
     } catch (err) {
         console.error("Failed to fetch friends' posts:", err);
         res.status(500).json({ error: "Server error" });
+    }
+});
+
+router.post("/users/:userId/communities", async (req, res) => {
+    const { communityId } = req.body;
+    const { userId } = req.params;
+
+    try {
+        await db.query(
+            `INSERT INTO user_communities (user_id, community_id)
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`,
+            [userId, communityId]
+        );
+        res.status(200).json({ message: "Joined community" });
+    } catch (err) {
+        console.error("Join community error:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+
+router.delete("/users/:userId/communities/:communityId", async (req, res) => {
+    const { userId, communityId } = req.params;
+
+    try {
+        await db.query(
+            "DELETE FROM user_communities WHERE user_id = $1 AND community_id = $2",
+            [userId, communityId]
+        );
+        res.json({ message: "Community removed" });
+    } catch (err) {
+        console.error("Failed to remove community:", err);
+        res.status(500).json({ error: "Could not remove community" });
     }
 });
 

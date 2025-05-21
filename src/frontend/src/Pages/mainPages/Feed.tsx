@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useUser } from "../../lib/UserContext";
-import "../../Styles/Feed.css";
+import "../../Styles/feed/Feed.css";
 import Sidebar from "../../components/PageComponets/Sidebar";
 import placeholder from "../../assets/placeholder.png";
 import icon from "../../assets/icon.png";
@@ -20,6 +20,11 @@ const Feed: React.FC = () => {
   const [commentText, setCommentText] = useState("");
   const [comments, setComments] = useState<any[]>([]);
   const [showOnlyFriends, setShowOnlyFriends] = useState(false);
+  const [selectedCommunityId, setSelectedCommunityId] = useState<string>("");
+  const [allCommunities, setAllCommunities] = useState<any[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const selectedCommunity = allCommunities.find(c => c.id === selectedCommunityId)?.name || "All Communities";
+
 
   const fetchFriendsPosts = async () => {
     if (!user?.id) return;
@@ -60,6 +65,14 @@ const Feed: React.FC = () => {
       await fetchAllPosts();
     })();
   }, []);
+
+  useEffect(() => {
+    fetch("http://localhost:5001/api/communities")
+      .then(res => res.json())
+      .then(data => setAllCommunities(data.communities))
+      .catch(err => console.error("Failed to load communities:", err));
+  }, []);
+
 
 
 
@@ -146,6 +159,10 @@ const Feed: React.FC = () => {
     formData.append("content", postText);
     formData.append("is_anonymous", user.is_anonymous.toString());
 
+    if (selectedCommunityId) {
+      formData.append("community_id", selectedCommunityId);
+    }
+
     if (fileInputRef.current?.files) {
       Array.from(fileInputRef.current.files).forEach((file) => {
         formData.append("images", file);
@@ -172,6 +189,7 @@ const Feed: React.FC = () => {
         );
         setPostText("");
         setPreviewUrls([]);
+        setSelectedCommunityId(""); // reset
         if (fileInputRef.current) fileInputRef.current.value = "";
       } else {
         console.error("Post creation failed:", data.error);
@@ -211,6 +229,23 @@ const Feed: React.FC = () => {
     }
   };
 
+  const fetchPostsByCommunity = async (communityId: string) => {
+    try {
+      const res = await fetch(`http://localhost:5001/api/posts?communityId=${communityId}`);
+      const data = await res.json();
+      setPosts(
+        data.posts.map((post: any) => ({
+          ...post,
+          likedByCurrentUser: post.liked_by_ids?.includes(user?.id),
+          likeCount: Number(post.like_count) || 0,
+        }))
+      );
+    } catch (err) {
+      console.error("Failed to fetch community posts:", err);
+    }
+  };
+
+
   return (
     <div className="feed-container">
       <Sidebar />
@@ -220,10 +255,43 @@ const Feed: React.FC = () => {
         <div className="feed-header">
           <h2>Home Feed</h2>
           <div className="feed-nav-options">
-            <select defaultValue="">
-              <option value="" disabled hidden>Communities</option>
-              <option value="carti">Carti Fan</option>
-            </select>
+            <div className="custom-dropdown">
+              <button
+                className="dropdown-toggle"
+                onClick={() => setDropdownOpen((prev) => !prev)}
+              >
+                {selectedCommunity}
+                <span className="arrow">▾</span>
+              </button>
+              {dropdownOpen && (
+                <div className="dropdown-menu">
+                  <button
+                    className={`dropdown-item ${selectedCommunityId === "" ? "active" : ""}`}
+                    onClick={async () => {
+                      await fetchAllPosts();
+                      setSelectedCommunityId("");
+                      setDropdownOpen(false);
+                    }}
+                  >
+                    All Communities
+                  </button>
+                  {allCommunities.map((c) => (
+                    <button
+                      key={c.id}
+                      className={`dropdown-item ${selectedCommunityId === c.id ? "active" : ""}`}
+                      onClick={async () => {
+                        await fetchPostsByCommunity(c.id);
+                        setSelectedCommunityId(c.id);
+                        setDropdownOpen(false);
+                        setShowOnlyFriends(false);
+                      }}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               className={`hover-btn ${showOnlyFriends ? "active-filter" : ""}`}
               onClick={async () => {
@@ -238,6 +306,7 @@ const Feed: React.FC = () => {
               onClick={async () => {
                 await fetchAllPosts();
                 setShowOnlyFriends(false);
+                setSelectedCommunityId("");
               }}
             >
               All
@@ -253,16 +322,38 @@ const Feed: React.FC = () => {
           />
           <div style={{flex: 1, display: "flex", flexDirection: "column"}}>
             {user?.is_anonymous && (
-              <p style={{ fontStyle: "italic", color: "#777", marginBottom: "0.5rem" }}>
+              <p style={{fontStyle: "italic", color: "#777", marginBottom: "0.5rem"}}>
                 You are posting anonymously
               </p>
+            )}
+            {allCommunities.length > 0 && (
+              <select
+                value={selectedCommunityId}
+                onChange={(e) => setSelectedCommunityId(e.target.value)}
+                style={{
+                  marginBottom: "0.5rem",
+                  padding: "6px 10px",
+                  borderRadius: "6px",
+                  border: "1px solid #ccc",
+                  fontSize: "14px",
+                  width: "fit-content",
+                  maxWidth: "100%",
+                }}
+              >
+                <option value="">Select a community</option>
+                {allCommunities.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             )}
             <PostTextBox postText={postText} onChange={handleInputChange}/>
             {previewUrls.length > 0 && (
               <div className="preview-container">
                 {previewUrls.map((url, idx) => (
-                  <div key={idx} style={{position: "relative", display: "inline-block" }}>
-                    <img src={url} alt={`Preview ${idx}`} className="preview-img" />
+                  <div key={idx} style={{position: "relative", display: "inline-block"}}>
+                    <img src={url} alt={`Preview ${idx}`} className="preview-img"/>
                     <button
                       onClick={() => handleRemoveImage(idx)}
                       className="remove-image-btn"
@@ -307,8 +398,13 @@ const Feed: React.FC = () => {
                 <strong>{post.display_name}</strong>
                 {!post.is_anonymous && <p>@{post.display_name}</p>}
               </div>
+              {post.community_name && (
+                <span className="community-tag">#{post.community_name}</span>
+              )}
             </div>
-            <p className="post-content">{post.content}</p>
+            {post.content && (
+              <p className="post-content">{post.content}</p>
+            )}
             {Array.isArray(post.image_urls) && post.image_urls.length > 0 && (
               <div className="post-images">
                 {post.image_urls.map((url: string, idx: number) => (

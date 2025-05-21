@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import "../../Styles/ForumsPage.css";
+import "../../Styles/forum/ForumsPage.css";
 import placeholder from "../../assets/placeholder.png";
 import heart from "../../assets/like.png";
 import comment from "../../assets/comments.png";

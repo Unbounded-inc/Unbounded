@@ -352,6 +352,89 @@ router.put("/edit-phone-secure", async (req, res) => {
     }
 });
 
+// GET /api/posts?communityId=abc123
+router.get("/posts", async (req, res) => {
+    const { communityId } = req.query;
+    let query = "SELECT * FROM posts";
+    const values = [];
+
+    if (communityId) {
+        query += " WHERE community_id = $1";
+        values.push(communityId);
+    }
+
+    query += " ORDER BY created_at DESC";
+
+    try {
+        const result = await db.query(query, values);
+        res.json({ posts: result.rows });
+    } catch (err) {
+        console.error("Error fetching posts:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+router.get("/:userId/communities", async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+        const result = await db.query(
+            `SELECT c.* FROM communities c
+       JOIN user_communities uc ON uc.community_id = c.id
+       WHERE uc.user_id = $1`,
+            [userId]
+        );
+
+        res.json({ communities: result.rows });
+    } catch (err) {
+        console.error("Failed to fetch user communities:", err);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+// DELETE /api/users/:userId/communities/:communityId
+router.delete("/:userId/communities/:communityId", async (req, res) => {
+    const { userId, communityId } = req.params;
+
+    try {
+        await db.query(
+            `DELETE FROM user_communities WHERE user_id = $1 AND community_id = $2`,
+            [userId, communityId]
+        );
+
+        res.json({ message: "User removed from community" });
+    } catch (err) {
+        console.error("Failed to remove user from community:", err.message);
+        res.status(500).json({ error: "Failed to remove user from community" });
+    }
+});
+
+// POST /api/users/:userId/communities
+router.post("/:userId/communities", async (req, res) => {
+    const { userId } = req.params;
+    const { communityId } = req.body;
+
+    if (!communityId) {
+        return res.status(400).json({ error: "Missing communityId" });
+    }
+
+    try {
+        await db.query(
+            `INSERT INTO user_communities (user_id, community_id)
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING`, // Avoid duplicate entries
+            [userId, communityId]
+        );
+
+        res.status(201).json({ message: "User joined the community" });
+    } catch (err) {
+        console.error("Failed to add user to community:", err.message);
+        res.status(500).json({ error: "Server error" });
+    }
+});
+
+
+
 
 
 module.exports = router;

@@ -1,6 +1,6 @@
 import React, { useRef, useState } from "react";
 import icon from "../../assets/icon.png";
-import "../../Styles/Messages.css";
+import "../../Styles/messages/Messages.css";
 import SendMessage from "../../components/PageComponets/SendMessageButton";
 
 interface Props {

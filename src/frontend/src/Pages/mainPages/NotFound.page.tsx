@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../lib/UserContext';
-import '../../Styles/NotFound.css';
+import '../../Styles/nav/NotFound.css';
 
 export function NotFoundPage() {
   const navigate = useNavigate();

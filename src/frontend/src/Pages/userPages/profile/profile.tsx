@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../../../Styles/profile.css";
+import "../../../Styles/profile/profile.css";
 import { updateUser } from "../../../lib/api";
 import { useUser } from "../../../lib/UserContext";
 import Sidebar from "../../../components/PageComponets/Sidebar.tsx";
@@ -10,15 +10,36 @@ const Profile: React.FC = () => {
   const { user, loading, logout, refreshUser } = useUser();
   const [isEditing, setIsEditing] = useState(false);
   const [localUser, setLocalUser] = useState(user);
-
-  const [communityInput, setCommunityInput] = useState("");
-  const [communities, setCommunities] = useState<string[]>([
-    "Latinx", "Gamers", "Students"
-  ]);
+  const [allCommunities, setAllCommunities] = useState<any[]>([]);
+  const [joinedCommunities, setJoinedCommunities] = useState<any[]>([]);
 
   useEffect(() => {
-    setLocalUser(user);
-  }, [user]);
+    if (!user?.id) return;
+
+    const fetchData = async () => {
+      try {
+        const joinedRes = await fetch(`http://localhost:5001/api/users/${user.id}/communities`);
+        const allRes = await fetch(`http://localhost:5001/api/communities`);
+
+        if (!joinedRes.ok || !allRes.ok) {
+          throw new Error("One of the community fetches failed.");
+        }
+
+        const joinedData = await joinedRes.json();
+        const allData = await allRes.json();
+
+        console.log("JOINED DATA:", joinedData);
+        console.log("ALL DATA:", allData);
+
+        setJoinedCommunities(joinedData.communities || []);
+        setAllCommunities(allData.communities);
+      } catch (err) {
+        console.error("Failed to load communities:", err);
+      }
+    };
+
+    fetchData();
+  }, [user?.id]);
 
   const handleLogout = async () => {
     await logout();
@@ -31,10 +52,7 @@ const Profile: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target as HTMLInputElement;
-    const newValue =
-      type === "checkbox"
-        ? (e.target as HTMLInputElement).checked
-        : value;
+    const newValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
 
     setLocalUser((prev) => ({
       ...prev!,
@@ -81,20 +99,6 @@ const Profile: React.FC = () => {
     }
   };
 
-  const handleAddCommunity = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && communityInput.trim()) {
-      e.preventDefault();
-      if (!communities.includes(communityInput.trim())) {
-        setCommunities([...communities, communityInput.trim()]);
-      }
-      setCommunityInput("");
-    }
-  };
-
-  const handleRemoveCommunity = (index: number) => {
-    setCommunities(communities.filter((_, i) => i !== index));
-  };
-
   const handleSave = async () => {
     if (!localUser) return;
 
@@ -125,6 +129,9 @@ const Profile: React.FC = () => {
   if (loading) return <p>Loading...</p>;
   if (!user || !localUser) return <p>Error: Not logged in</p>;
 
+  console.log("joinedCommunities for render:", joinedCommunities);
+
+
   return (
     <div className="profile-container">
       <Sidebar />
@@ -143,7 +150,7 @@ const Profile: React.FC = () => {
               <>
                 <div className="pfp-upload">
                   <label className="upload-label">Upload New Profile Picture:</label>
-                  <input type="file" accept="image/*" onChange={handleImageUpload} className="file-input"/>
+                  <input type="file" accept="image/*" onChange={handleImageUpload} className="file-input" />
                 </div>
 
                 <label className="upload-label">Username:</label>
@@ -172,7 +179,6 @@ const Profile: React.FC = () => {
                   className="profile-input"
                   placeholder="Last Name"
                 />
-               
                 <div>
                   <label className="upload-label">
                     Stay Anonymous?
@@ -188,19 +194,50 @@ const Profile: React.FC = () => {
               </>
             ) : (
               <>
-                <h2 style={{margin:'10px'}}>{localUser.first_name} {localUser.last_name}</h2>
-                <h3 style={{margin:'10px'}}>{localUser.username}</h3>
-                <p style={{margin:'10px'}}>{localUser.bio || "No bio provided."}</p>
-                <p style={{margin:'10px'}}><strong>Email:</strong> {localUser.email}</p>
-                <p style={{margin:'10px', marginBottom:"15px"}}><strong>Anonymous:</strong> {localUser.is_anonymous ? "Yes" : "No"}</p>
-                <button style={{backgroundColor:"rgb(76, 86, 158)"}} onClick={handleEditToggle}>Edit Profile</button>
-                <button
-  style={{ backgroundColor: "#2c2456" }}
-  onClick={() => navigate("/my-posts")}
->
-  View Posts
-</button>
+                <h2 style={{ margin: '10px' }}>{localUser.first_name} {localUser.last_name}</h2>
+                <h3 style={{ margin: '10px' }}>{localUser.username}</h3>
+                <p style={{ margin: '10px' }}>{localUser.bio || "No bio provided."}</p>
+                <p style={{ margin: '10px' }}><strong>Email:</strong> {localUser.email}</p>
+                <p className="profile-detail"><strong>Anonymous:</strong> {localUser.is_anonymous ? "Yes" : "No"}</p>
+                {Array.isArray(joinedCommunities) && joinedCommunities.length > 0 && (
+                  <div className="profile-communities" style={{ margin: "10px", textAlign: "center" }}>
+                    <strong>Communities:</strong>
+                    <div
+                      className="badge-list"
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "8px",
+                        justifyContent: "center",
+                        marginTop: "6px",
+                        maxWidth: "600px",
+                        marginLeft: "auto",
+                        marginRight: "auto",
+                      }}
+                    >
+                      {joinedCommunities.map((c) => (
+                        <span
+                          key={c.id}
+                          style={{
+                            padding: "5px 10px",
+                            backgroundColor: "#e6e6ff",
+                            borderRadius: "15px",
+                            fontSize: "14px",
+                            color: "#2c2456",
+                            fontWeight: 500,
+                          }}
+                        >
+                          {c.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
+
+
+                <button style={{ backgroundColor: "rgb(76, 86, 158)" }} onClick={handleEditToggle}>Edit Profile</button>
+                <button style={{ backgroundColor: "#2c2456" }} onClick={() => navigate("/my-posts")}>View Posts</button>
                 <button className="logout-button" onClick={handleLogout}>Log Out</button>
               </>
             )}
@@ -216,28 +253,41 @@ const Profile: React.FC = () => {
                 className="profile-textarea"
                 placeholder="Your bio..."
               />
+
               <label className="upload-label">Communities:</label>
-              <input
-                type="text"
-                placeholder="Type and press Enter"
-                className="community-input"
-                value={communityInput}
-                onChange={(e) => setCommunityInput(e.target.value)}
-                onKeyDown={handleAddCommunity}
-              />
               <div className="community-tag-list">
-                {communities.map((tag, index) => (
-                  <div key={index} className="community-tag">
-                    {tag}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveCommunity(index)}
-                      className="community-tag-remove"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ))}
+                {allCommunities.map((community) => {
+                  const joined = joinedCommunities.some((c) => c.id === community.id);
+                  return (
+                    <div key={community.id} className={`community-tag ${joined ? "active" : ""}`}>
+                      {community.name}
+                      <button
+                        onClick={async () => {
+                          const API_BASE = import.meta.env.PROD ? "" : "http://localhost:5001";
+
+                          const url = `${API_BASE}/api/users/${user.id}/communities${joined ? `/${community.id}` : ""}`;
+                          const method = joined ? "DELETE" : "POST";
+                          const body = joined ? null : JSON.stringify({ communityId: community.id });
+
+                          await fetch(url, {
+                            method,
+                            ...(body && {
+                              headers: { "Content-Type": "application/json" },
+                              body,
+                            }),
+                          });
+
+                          const refreshed = await fetch(`${API_BASE}/api/users/${user.id}/communities`);
+                          const updated = await refreshed.json();
+                          setJoinedCommunities(updated.communities);
+                        }}
+                        className="community-tag-remove"
+                      >
+                        {joined ? "✕" : "+"}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -245,8 +295,8 @@ const Profile: React.FC = () => {
 
         {isEditing && (
           <div className="edit-buttons-wrapper">
-            <button style={{backgroundColor:"rgb(76, 86, 158)"}} onClick={handleSave}>Save</button>
-            <button style={{backgroundColor:"#2c2456"}} onClick={() => setIsEditing(false)}>Cancel</button>
+            <button style={{ backgroundColor: "rgb(76, 86, 158)" }} onClick={handleSave}>Save</button>
+            <button style={{ backgroundColor: "#2c2456" }} onClick={() => setIsEditing(false)}>Cancel</button>
             <button className="logout-button" onClick={handleLogout}>Log Out</button>
           </div>
         )}

@@ -57,7 +57,7 @@
 
 .friends-sections {
   display: flex;
-  flex-wrap: wrap; /* allow wrapping */
+  flex-wrap: wrap;
   gap: 2rem;
   justify-content: space-between;
   height: auto;

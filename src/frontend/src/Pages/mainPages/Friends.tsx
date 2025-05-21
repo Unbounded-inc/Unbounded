@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "../../Styles/Friends.css";
+import "../../Styles/friends/Friends.css";
 import Sidebar from "../../components/PageComponets/Sidebar";
 import placeholder from "../../assets/placeholder.png";
 import { useUser } from "../../lib/UserContext";

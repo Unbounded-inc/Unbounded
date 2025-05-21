@@ -55,7 +55,6 @@ describe("CreateEventModal", () => {
   it("calls onEventCreated after saving (mocking fetch + geocode)", async () => {
     const { onEventCreated } = setup();
 
-    // Fill out required fields
     fireEvent.change(screen.getByPlaceholderText("Event Name"), {
       target: { value: "Mock Event" },
     });

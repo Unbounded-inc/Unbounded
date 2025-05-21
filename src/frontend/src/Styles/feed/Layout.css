@@ -1,15 +1,14 @@
-/* Layout.css */
 .layout {
     display: flex;
   }
   
   .main-content {
     flex-grow: 1;
-    margin-left: 70px; /* Sidebar collapsed width */
+    margin-left: 70px;
     transition: margin-left 0.3s ease;
     padding: 20px;
   }
   
   .main-content.shifted {
-    margin-left: 260px; /* Sidebar expanded width */
+    margin-left: 260px;
   }

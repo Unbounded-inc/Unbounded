@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useUser } from "../../lib/UserContext"; // ✅ grab context
+import { useUser } from "../../lib/UserContext";
 
 interface LoginButtonProps {
   email: string;
@@ -27,12 +27,12 @@ const LoginButton: React.FC<LoginButtonProps> = ({ email, password, onSuccess })
       const response = await axios.post(
         "http://localhost:5001/auth/login",
         { email, password },
-        { withCredentials: true } // ✅ required for cookie
+        { withCredentials: true }
       );
 
       console.log("Login successful:", response.data);
 
-      await fetchUser(); // ✅ immediately update context
+      await fetchUser();
 
       const userId = response.data?.user?.id || response.data?.user?.id;
       if (userId) {
@@ -40,7 +40,7 @@ const LoginButton: React.FC<LoginButtonProps> = ({ email, password, onSuccess })
         console.log("Saved auth0_id to localStorage:", userId);
       }
 
-      if (onSuccess) onSuccess(); // ✅ optional navigation
+      if (onSuccess) onSuccess();
     } catch (err: any) {
       console.error("Login failed:", err.response?.data || err.message);
       setError(err.response?.data?.error || "Login failed. Please try again.");
