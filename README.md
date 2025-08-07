@@ -144,11 +144,11 @@ We are currently using **DigitalOcean App Platform** and **Droplets** for hostin
 | Auth + Profile System         | ✅ Completed  |
 | Community Feed                | ✅ Completed  |
 | Forums                        | ✅ Completed |
-| Messaging (1-1 + Group Chat)  | 🚧 In Progress |
-| Map + Events Page             | 🚧 In Progress  |
+| Messaging (1-1 + Group Chat)  | ✅ Completed |
+| Map + Events Page             | ✅ Completed  |
 | Moderation Tools              | ⏳ Planned|
-| Notifications                 | 🚧 In Progress|
-| Friend System                 | 🚧 In Progress    |
+| Notifications                 | ✅ Completed|
+| Friend System                 | ✅ Completed    |
 | Advanced Moderation & Gamification | ⏳ Planned    |
 
 ---
